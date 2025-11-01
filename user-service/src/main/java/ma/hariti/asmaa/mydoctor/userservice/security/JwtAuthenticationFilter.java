@@ -1,10 +1,9 @@
-package ma.hariti.asmaa.mydoctor.userservice.config;
+package ma.hariti.asmaa.mydoctor.userservice.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import ma.hariti.asmaa.mydoctor.userservice.service.JwtService;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;

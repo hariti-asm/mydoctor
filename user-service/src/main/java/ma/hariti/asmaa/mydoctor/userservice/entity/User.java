@@ -1,20 +1,14 @@
 package ma.hariti.asmaa.mydoctor.userservice.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+import ma.hariti.asmaa.mydoctor.userservice.entity.enums.Role;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -23,21 +17,46 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class User implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO) // Use AUTO for TABLE_PER_CLASS
     private Long id;
 
-    private String username;
+    private String name;
 
+    @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    private String resetToken;
+
+    private LocalDateTime resetTokenExpiryDate;
+
+    // ✅ Set token and expiration date easily
+    public void setResetToken(String token, int minutesToExpire) {
+        this.resetToken = token;
+        this.resetTokenExpiryDate = LocalDateTime.now().plusMinutes(minutesToExpire);
+    }
+
+    public boolean isResetTokenValid(String token) {
+        return this.resetToken != null &&
+                this.resetToken.equals(token) &&
+                this.resetTokenExpiryDate != null &&
+                this.resetTokenExpiryDate.isAfter(LocalDateTime.now());
+    }
+
+    public void clearResetToken() {
+        this.resetToken = null;
+        this.resetTokenExpiryDate = null;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

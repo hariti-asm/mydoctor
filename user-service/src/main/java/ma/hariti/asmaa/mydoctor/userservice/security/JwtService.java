@@ -1,4 +1,4 @@
-package ma.hariti.asmaa.mydoctor.userservice.service;
+package ma.hariti.asmaa.mydoctor.userservice.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -35,23 +35,35 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(Authentication authentication) {
-        return generateToken(new HashMap<>(), authentication);
+    public String generateToken(UserDetailsImpl userDetails) {
+        return generateToken(new HashMap<>(), userDetails);
     }
 
-    public String generateToken(Map<String, Object> extraClaims, Authentication authentication) {
-        return buildToken(extraClaims, authentication.getName(), jwtExpiration);
+    public String generateToken(
+            Map<String, Object> extraClaims,
+            UserDetailsImpl userDetails
+    ) {
+        return buildToken(extraClaims, userDetails, jwtExpiration);
     }
 
-    public String generateRefreshToken(Authentication authentication) {
-        return buildToken(new HashMap<>(), authentication.getName(), refreshExpiration);
+    public String generateToken(UserDetailsImpl userDetails, boolean rememberMe) {
+        long expiration = rememberMe ? refreshExpiration : jwtExpiration;
+        return buildToken(new HashMap<>(), userDetails, expiration);
     }
 
-    private String buildToken(Map<String, Object> extraClaims, String username, long expiration) {
+    public String generateRefreshToken(UserDetailsImpl userDetails) {
+        return buildToken(new HashMap<>(), userDetails, refreshExpiration);
+    }
+
+    private String buildToken(
+            Map<String, Object> extraClaims,
+            UserDetailsImpl userDetails,
+            long expiration
+    ) {
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
-                .setSubject(username)
+                .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
