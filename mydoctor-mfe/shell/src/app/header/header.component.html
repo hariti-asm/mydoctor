@@ -1,0 +1,98 @@
+<nav class="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-20">
+
+      <!-- Logo -->
+      <div (click)="scrollTo('home')" class="flex items-center cursor-pointer">
+        <svg class="w-8 h-8 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path clip-rule="evenodd"
+                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                fill-rule="evenodd"/>
+        </svg>
+        <span class="text-2xl font-bold text-gray-900">MyDoctor</span>
+      </div>
+
+      <!-- Desktop Menu -->
+      <div class="hidden md:flex items-center space-x-8">
+        <a (click)="scrollTo('home')" class="nav-link cursor-pointer">Home</a>
+        <a (click)="scrollTo('features')" class="nav-link cursor-pointer">Features</a>
+        <a (click)="scrollTo('about')" class="nav-link cursor-pointer">About</a>
+        <a (click)="scrollTo('doctors')" class="nav-link cursor-pointer">Doctors</a>
+        <a (click)="scrollTo('testimonials')" class="nav-link cursor-pointer">Testimonials</a>
+        <a (click)="scrollTo('contact')" class="nav-link cursor-pointer">Contact</a>
+      </div>
+
+      <!-- CTA Buttons - Desktop -->
+      <div class="hidden md:flex items-center space-x-4">
+        <ng-container *ngIf="!isLoggedIn; else loggedInDesktop">
+          <a class="nav-link cursor-pointer" routerLink="/login">Login</a>
+          <a class="px-6 py-2.5 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600 transition-colors cursor-pointer"
+             routerLink="/register">
+            Sign Up
+          </a>
+        </ng-container>
+
+        <ng-template #loggedInDesktop>
+          <span class="text-gray-700 font-medium">Welcome, {{ userName }}</span>
+          <button
+            (click)="onLogout()"
+            class="px-6 py-2.5 bg-red-500 text-white font-semibold rounded-full hover:bg-red-600 transition-colors">
+            Logout
+          </button>
+        </ng-template>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button
+        (click)="toggleMobileMenu()"
+        class="md:hidden text-gray-700 hover:text-green-500 focus:outline-none transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path *ngIf="!isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"/>
+          <path *ngIf="isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div *ngIf="isMobileMenuOpen"
+         class="md:hidden border-t border-gray-200 py-4 animate-slideDown">
+      <div class="flex flex-col space-y-4">
+        <a (click)="scrollTo('home')" class="nav-link cursor-pointer">Home</a>
+        <a (click)="scrollTo('features')" class="nav-link cursor-pointer">Features</a>
+        <a (click)="scrollTo('about')" class="nav-link cursor-pointer">About</a>
+        <a (click)="scrollTo('doctors')" class="nav-link cursor-pointer">Doctors</a>
+        <a (click)="scrollTo('testimonials')" class="nav-link cursor-pointer">Testimonials</a>
+        <a (click)="scrollTo('contact')" class="nav-link cursor-pointer">Contact</a>
+
+        <!-- Mobile Auth Buttons -->
+        <div class="pt-4 border-t border-gray-200 space-y-3">
+          <ng-container *ngIf="!isLoggedIn; else loggedInMobile">
+            <a routerLink="/login" (click)="toggleMobileMenu()"
+               class="block text-center nav-link cursor-pointer py-2">
+              Login
+            </a>
+            <a routerLink="/register" (click)="toggleMobileMenu()"
+               class="block text-center px-6 py-2.5 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600">
+              Sign Up
+            </a>
+          </ng-container>
+
+          <ng-template #loggedInMobile>
+            <div class="text-center text-gray-700 font-medium py-2">
+              Welcome, {{ userName }}
+            </div>
+            <button
+              (click)="onLogout(); toggleMobileMenu()"
+              class="w-full px-6 py-2.5 bg-red-500 text-white font-semibold rounded-full hover:bg-red-600">
+              Logout
+            </button>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="h-20"></div>
+

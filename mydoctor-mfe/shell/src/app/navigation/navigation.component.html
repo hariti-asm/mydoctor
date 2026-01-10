@@ -1,0 +1,35 @@
+<nav class="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-20">
+      ,
+      <!-- Logo -->
+      <div (click)="scrollTo('home')" class="flex items-center cursor-pointer">
+        <svg class="w-8 h-8 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path clip-rule="evenodd"
+                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                fill-rule="evenodd"/>
+        </svg>
+        <span class="text-2xl font-bold text-gray-900">MyDoctor</span>
+      </div>
+
+
+      <!-- Desktop Menu -->
+      <div class="hidden md:flex items-center space-x-8">
+        <a (click)="scrollTo('home')" class="nav-link cursor-pointer">Home</a>
+        <a (click)="scrollTo('features')" class="nav-link cursor-pointer">Features</a>
+        <a (click)="scrollTo('about')" class="nav-link cursor-pointer">About</a>
+        <a (click)="scrollTo('doctors')" class="nav-link cursor-pointer">Doctors</a>
+        <a (click)="scrollTo('testimonials')" class="nav-link cursor-pointer">Testimonials</a>
+        <a (click)="scrollTo('contact')" class="nav-link cursor-pointer">Contact</a>
+      </div>
+      <!-- CTA Buttons -->
+      <div class="hidden md:flex items-center space-x-4">
+        <a class="nav-link" routerLink="/login">Login</a>
+        <a class="px-6 py-2.5 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600"
+           routerLink="/register">
+          Sign Up
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
