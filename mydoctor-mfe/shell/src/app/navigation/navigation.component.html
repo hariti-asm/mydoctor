@@ -6,8 +6,8 @@
       <div (click)="scrollTo('home')" class="flex items-center cursor-pointer">
         <svg class="w-8 h-8 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
           <path clip-rule="evenodd"
-                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                fill-rule="evenodd"/>
+            d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+            fill-rule="evenodd" />
         </svg>
         <span class="text-2xl font-bold text-gray-900">MyDoctor</span>
       </div>
@@ -23,12 +23,46 @@
         <a (click)="scrollTo('contact')" class="nav-link cursor-pointer">Contact</a>
       </div>
       <!-- CTA Buttons -->
+      <!-- CTA Buttons / Profile -->
       <div class="hidden md:flex items-center space-x-4">
-        <a class="nav-link" routerLink="/login">Login</a>
-        <a class="px-6 py-2.5 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600"
-           routerLink="/register">
-          Sign Up
-        </a>
+        <ng-container *ngIf="(isLoggedIn$ | async) === false; else profileTpl">
+          <a class="nav-link cursor-pointer" routerLink="/login">Login</a>
+          <a class="px-6 py-2.5 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600 cursor-pointer"
+            routerLink="/register">
+            Sign Up
+          </a>
+        </ng-container>
+
+        <ng-template #profileTpl>
+          <div class="relative ml-3">
+            <div>
+              <button (click)="toggleProfileMenu()" type="button"
+                class="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:shadow-outline"
+                id="user-menu" aria-label="User menu" aria-haspopup="true">
+                <span class="mr-2 text-gray-700 font-medium" *ngIf="userProfile$ | async as profile">
+                  {{ profile.firstName }}{{ profile.lastName ? ' ' + profile.lastName : '' }}
+                </span>
+                <div class="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">
+                  <span *ngIf="userProfile$ | async as profile">
+                    {{ profile.firstName.charAt(0) }}{{ profile.lastName ? profile.lastName.charAt(0) : '' }}
+                  </span>
+                </div>
+              </button>
+            </div>
+
+            <!-- Profile Dropdown -->
+            <div *ngIf="showProfileMenu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg">
+              <div class="py-1 rounded-md bg-white shadow-xs" role="menu" aria-orientation="vertical"
+                aria-labelledby="user-menu">
+                <a routerLink="/profile" (click)="showProfileMenu = false"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" role="menuitem">Your
+                  Profile</a>
+                <a (click)="logout()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                  role="menuitem">Sign out</a>
+              </div>
+            </div>
+          </div>
+        </ng-template>
       </div>
     </div>
   </div>

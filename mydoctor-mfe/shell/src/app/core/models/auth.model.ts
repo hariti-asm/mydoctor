@@ -47,9 +47,6 @@ export namespace Auth {
     refreshToken: string;
     rememberMeToken?: string;
     user: UserResponse;
-    accessToken: string;
-    tokenType: string;
-    expiresIn: number;
   }
 
   export interface UserProfileResponse {

@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
-import {AuthService} from '../core/services/auth.service';
+import { AuthService } from '../core/services/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -18,7 +18,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   private subscriptions = new Subscription();
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   ngOnInit(): void {
     // Listen to login status
@@ -32,7 +32,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.authService.userProfile$.subscribe(profile => {
         this.userName = profile
-          ? `${profile.firstName} ${profile.lastName}`
+          ? `${profile.firstName}`
           : null;
       })
     );

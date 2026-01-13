@@ -9,6 +9,7 @@ import ma.hariti.asmaa.mydoctor.userservice.entity.enums.Role;
 @Entity
 @DiscriminatorValue("ADMIN")
 @NoArgsConstructor
+@lombok.experimental.SuperBuilder
 public class Admin extends User {
     public Admin(Long id, String name, String email, String password, Role role, String resetToken, java.time.LocalDateTime resetTokenExpiryDate) {
         super(id, name, email, password, role, resetToken, resetTokenExpiryDate);

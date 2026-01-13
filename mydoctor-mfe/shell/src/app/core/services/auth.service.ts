@@ -1,7 +1,7 @@
-import {BehaviorSubject, catchError, map, Observable, tap, throwError} from 'rxjs';
-import {Router} from '@angular/router';
-import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {Auth} from '../models/auth.model';
+import { BehaviorSubject, catchError, map, Observable, tap, throwError } from 'rxjs';
+import { Router } from '@angular/router';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Auth } from '../models/auth.model';
 import UserProfileResponse = Auth.UserProfileResponse;
 import LoginRequest = Auth.LoginRequest;
 import ApiResponse = Auth.ApiResponse;
@@ -66,9 +66,7 @@ export class AuthService {
 
   // Get user profile
   getUserProfile(): Observable<UserProfileResponse> {
-    const headers = this.getAuthHeaders();
-
-    return this.http.get<UserProfileResponse>(`${this.apiUrl}/profile`, { headers })
+    return this.http.get<UserProfileResponse>(`${this.apiUrl}/profile`)
       .pipe(
         tap(profile => this.userProfileSubject.next(profile)),
         catchError(error => {
@@ -95,9 +93,7 @@ export class AuthService {
 
   // Update user profile
   updateProfile(updateData: Partial<UserProfileResponse>): Observable<UserProfileResponse> {
-    const headers = this.getAuthHeaders();
-
-    return this.http.put<UserProfileResponse>(`${this.apiUrl}/profile`, updateData, { headers })
+    return this.http.put<UserProfileResponse>(`${this.apiUrl}/profile`, updateData)
       .pipe(
         tap(profile => this.userProfileSubject.next(profile)),
         catchError(error => {
@@ -109,10 +105,9 @@ export class AuthService {
 
   // Change password
   changePassword(currentPassword: string, newPassword: string): Observable<void> {
-    const headers = this.getAuthHeaders();
     const request = { currentPassword, newPassword };
 
-    return this.http.put<void>(`${this.apiUrl}/change-password`, request, { headers })
+    return this.http.put<void>(`${this.apiUrl}/change-password`, request)
       .pipe(
         catchError(error => {
           console.error('Change password error:', error);
@@ -167,11 +162,10 @@ export class AuthService {
   // Logout
   logout(): void {
     const refreshToken = localStorage.getItem('refreshToken');
-    const headers = this.getAuthHeaders();
 
     // Call backend logout endpoint
     if (refreshToken) {
-      this.http.post(`${this.apiUrl}/logout`, { refreshToken }, { headers })
+      this.http.post(`${this.apiUrl}/logout`, { refreshToken })
         .subscribe({
           error: (error) => console.error('Logout error:', error)
         });
@@ -196,7 +190,8 @@ export class AuthService {
 
   getUserName(): string | null {
     const profile = this.userProfileSubject.value;
-    return profile ? `${profile.firstName} ${profile.lastName}` : null;
+    if (!profile) return null;
+    return profile.lastName ? `${profile.firstName} ${profile.lastName}` : profile.firstName;
   }
 
   getUserEmail(): string | null {
@@ -206,10 +201,11 @@ export class AuthService {
 
   // Private helper methods
   private storeTokens(authResponse: AuthResponse): void {
-    localStorage.setItem('accessToken', authResponse.accessToken);
+    localStorage.setItem('accessToken', authResponse.token);
     localStorage.setItem('refreshToken', authResponse.refreshToken);
-    localStorage.setItem('tokenType', authResponse.tokenType);
-    localStorage.setItem('expiresIn', authResponse.expiresIn.toString());
+    if (authResponse.rememberMeToken) {
+      localStorage.setItem('rememberMeToken', authResponse.rememberMeToken);
+    }
   }
 
   private clearTokens(): void {

@@ -22,6 +22,7 @@ public class ApplicationConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> repository.findByEmail(username)
+                .map(ma.hariti.asmaa.mydoctor.userservice.security.UserDetailsImpl::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 

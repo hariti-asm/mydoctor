@@ -21,6 +21,7 @@ public class RegisterUserRequest {
     @NotNull(message = "Role is required")
     private Role role;
 
+    @NotBlank(message = "Password is required")
     private String password;
 
 

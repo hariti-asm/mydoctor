@@ -2,7 +2,9 @@
   "mcpServers": {
     "spring-docs": {
       "command": "npx",
-      "args": ["@enokdev/springdocs-mcp@latest"],
+      "args": [
+        "@enokdev/springdocs-mcp@latest"
+      ],
       "description": "Spring Documentation MCP Server with 12 powerful tools"
     }
   }

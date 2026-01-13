@@ -1,13 +1,25 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { AuthService } from '../core/services/auth.service';
 
 @Component({
   selector: 'app-navigation',
-  imports: [],
+  imports: [CommonModule, RouterModule],
   templateUrl: './navigation.component.html',
   standalone: true,
   styleUrl: './navigation.component.css'
 })
 export class NavigationComponent {
+  isLoggedIn$;
+  userProfile$;
+  showProfileMenu = false;
+
+  constructor(private authService: AuthService) {
+    this.isLoggedIn$ = this.authService.isLoggedIn$;
+    this.userProfile$ = this.authService.userProfile$;
+  }
+
   scrollTo(id: string) {
     const element = document.getElementById(id);
     if (element) {
@@ -20,5 +32,14 @@ export class NavigationComponent {
         behavior: 'smooth'
       });
     }
+  }
+
+  logout() {
+    this.authService.logout();
+    this.showProfileMenu = false;
+  }
+
+  toggleProfileMenu() {
+    this.showProfileMenu = !this.showProfileMenu;
   }
 }

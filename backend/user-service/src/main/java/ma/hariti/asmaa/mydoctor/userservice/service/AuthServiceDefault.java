@@ -6,6 +6,8 @@ import ma.hariti.asmaa.mydoctor.userservice.dto.request.*;
 import ma.hariti.asmaa.mydoctor.userservice.dto.response.AuthResponse;
 import ma.hariti.asmaa.mydoctor.userservice.dto.response.UserProfileResponse;
 import ma.hariti.asmaa.mydoctor.userservice.entity.Admin;
+import ma.hariti.asmaa.mydoctor.userservice.entity.Doctor;
+import ma.hariti.asmaa.mydoctor.userservice.entity.Patient;
 import ma.hariti.asmaa.mydoctor.userservice.entity.User;
 import ma.hariti.asmaa.mydoctor.userservice.entity.enums.Role;
 import ma.hariti.asmaa.mydoctor.userservice.exception.InvalidTokenException;
@@ -251,11 +253,16 @@ public class AuthServiceDefault implements AuthService {
                     .name(request.getName())
                     .role(Role.ADMIN)
                     .build();
-//            case CANDIDATE -> Candidate.builder()
-//                    .email(request.getEmail())
-//                    .name(request.getName())
-//                    .role(Role.CANDIDATE)
-//                    .build();
+            case DOCTOR -> Doctor.builder()
+                    .email(request.getEmail())
+                    .name(request.getName())
+                    .role(Role.DOCTOR)
+                    .build();
+            case PATIENT -> Patient.builder()
+                    .email(request.getEmail())
+                    .name(request.getName())
+                    .role(Role.PATIENT)
+                    .build();
             default -> throw new IllegalArgumentException("Invalid role for registration: " + request.getRole());
         };
     }

@@ -13,7 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
@@ -26,6 +25,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponseDTO<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+        System.out.println("Login request received for email: " + request.getEmail());
         AuthResponse response = request.isRememberMe() ?
                 authService.loginWithRememberMe(request) :
                 authService.login(request);
@@ -53,6 +53,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<Void> registerUser(@Valid @RequestBody RegisterUserRequest request) {
+        System.out.println("Register request received for email: " + request.getEmail());
         authService.registerUser(request);
         return ResponseEntity.ok().build();
     }
