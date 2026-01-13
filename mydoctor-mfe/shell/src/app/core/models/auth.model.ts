@@ -49,12 +49,26 @@ export namespace Auth {
     user: UserResponse;
   }
 
+  export interface Experience {
+    id?: number;
+    institution: string;
+    position: string;
+    startDate: string;
+    endDate?: string;
+    description?: string;
+  }
+
   export interface UserProfileResponse {
     id: number;
     email: string;
     firstName: string;
     role: Role;
     lastName?: string;
+    specialization?: string;
+    education?: string;
+    experiences?: Experience[];
+    diplomaPaths?: string[];
+    description?: string;
   }
 
   export interface ApiResponse<T> {

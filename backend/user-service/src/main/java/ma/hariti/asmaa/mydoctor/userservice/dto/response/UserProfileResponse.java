@@ -14,5 +14,11 @@ public class UserProfileResponse {
     private Long id;
     private String email;
     private String firstName;
+    private String lastName;
     private Role role;
+    private String specialization;
+    private String education;
+    private java.util.List<ExperienceResponse> experiences;
+    private java.util.List<String> diplomaPaths;
+    private String description;
 }

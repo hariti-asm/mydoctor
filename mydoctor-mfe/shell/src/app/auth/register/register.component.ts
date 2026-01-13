@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { Auth } from '../../core/models/auth.model';
 import Role = Auth.Role;
@@ -19,10 +19,13 @@ export class RegisterComponent {
   errorMessage: string | null = null;
   showPassword = false;
 
+  registrationTitle = 'Join MyDoctor';
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.registerForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -30,6 +33,19 @@ export class RegisterComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       role: [Role.PATIENT] // Default to Patient
+    });
+
+    this.route.queryParams.subscribe(params => {
+      const roleParam = params['role'];
+      if (roleParam === 'DOCTOR') {
+        this.registerForm.patchValue({ role: Role.DOCTOR });
+        this.registrationTitle = 'Join as a Doctor';
+      } else if (roleParam === 'PATIENT') {
+        this.registerForm.patchValue({ role: Role.PATIENT });
+        this.registrationTitle = 'Create Patient Account';
+      } else {
+        this.registrationTitle = 'Join MyDoctor';
+      }
     });
   }
 

@@ -19,4 +19,13 @@ public class UpdateProfileRequest {
     @Email(message = "Invalid email format")
     private String email;
 
+    @Size(min = 1, max = 50, message = "Last name must be between 1 and 50 characters")
+    private String lastName;
+
+    private String specialization;
+    private String education;
+    private java.util.List<ExperienceRequest> experiences;
+    private java.util.List<String> diplomaPaths;
+    private String description;
+
 }

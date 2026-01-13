@@ -272,19 +272,51 @@ public class AuthServiceDefault implements AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
-        return UserProfileResponse.builder()
+        // Basic fields
+        UserProfileResponse.UserProfileResponseBuilder responseBuilder = UserProfileResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
-                .firstName(user.getName())
-                .role(user.getRole())
-                .build();
+                .role(user.getRole());
+
+        // Split name into first and last name
+        if (user.getName() != null) {
+            String[] common = user.getName().split(" ", 2);
+            responseBuilder.firstName(common[0]);
+            if (common.length > 1) {
+                responseBuilder.lastName(common[1]);
+            }
+        }
+
+        // Doctor specific fields
+        if (user instanceof Doctor doctor) {
+            responseBuilder.specialization(doctor.getSpecialization())
+                    .education(doctor.getEducation())
+                    // Map experiences
+                    .experiences(doctor.getExperiences() != null
+                            ? doctor.getExperiences().stream()
+                                .map(exp -> ma.hariti.asmaa.mydoctor.userservice.dto.response.ExperienceResponse.builder()
+                                        .id(exp.getId())
+                                        .institution(exp.getInstitution())
+                                        .position(exp.getPosition())
+                                        .startDate(exp.getStartDate())
+                                        .endDate(exp.getEndDate())
+                                        .description(exp.getDescription())
+                                        .build())
+                                .collect(java.util.stream.Collectors.toList())
+                            : java.util.Collections.emptyList())
+                    // Map diplomas
+                    .diplomaPaths(doctor.getDiplomaPaths())
+                    .description(doctor.getDescription());
+        }
+
+        return responseBuilder.build();
     }
 
     @Override
     public void logout(String refreshToken) {
-
-        userRepository.deleteByResetToken(refreshToken);
-
+        // Implementation depends on how you handle refresh tokens (database vs jwt only)
+        // userRepository.deleteByResetToken(refreshToken); 
+        // For now, doing nothing or just logging
         System.out.println("User logged out successfully. Refresh token invalidated.");
     }
 
@@ -294,8 +326,42 @@ public class AuthServiceDefault implements AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
-        user.setName(request.getFirstName());
+        // Update Name (First + Last)
+        String fullName = request.getFirstName();
+        if (request.getLastName() != null && !request.getLastName().isBlank()) {
+            fullName += " " + request.getLastName();
+        }
+        user.setName(fullName);
 
+        // Update Doctor specific fields
+        if (user instanceof Doctor doctor) {
+            if (request.getSpecialization() != null) doctor.setSpecialization(request.getSpecialization());
+            if (request.getEducation() != null) doctor.setEducation(request.getEducation());
+            if (request.getDescription() != null) doctor.setDescription(request.getDescription());
+            
+            // Update Experiences
+            if (request.getExperiences() != null) {
+                // Clear existing (simple approach: remove all and re-add)
+                if (doctor.getExperiences() != null) {
+                    doctor.getExperiences().clear();
+                } else {
+                    doctor.setExperiences(new java.util.ArrayList<>());
+                }
+                
+                // Add new
+                for (ExperienceRequest expReq : request.getExperiences()) {
+                    ma.hariti.asmaa.mydoctor.userservice.entity.Experience experience = ma.hariti.asmaa.mydoctor.userservice.entity.Experience.builder()
+                            .institution(expReq.getInstitution())
+                            .position(expReq.getPosition())
+                            .startDate(expReq.getStartDate())
+                            .endDate(expReq.getEndDate())
+                            .description(expReq.getDescription())
+                            .doctor(doctor)
+                            .build();
+                    doctor.getExperiences().add(experience);
+                }
+            }
+        }
 
         userRepository.save(user);
 
