@@ -42,11 +42,11 @@ public class AuthServiceDefault implements AuthService {
     private final UserMapper userMapper;
 
     public AuthServiceDefault(AuthenticationManager authenticationManager,
-                              JwtService jwtService,
-                              UserRepository userRepository,
-                              PasswordEncoder passwordEncoder,
-                              EmailService emailService,
-                              UserMapper userMapper) {
+            JwtService jwtService,
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            EmailService emailService,
+            UserMapper userMapper) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
@@ -59,8 +59,7 @@ public class AuthServiceDefault implements AuthService {
     public AuthResponse login(@Valid LoginRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -91,8 +90,7 @@ public class AuthServiceDefault implements AuthService {
     public AuthResponse loginWithRememberMe(LoginRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -169,7 +167,6 @@ public class AuthServiceDefault implements AuthService {
         userRepository.save(user);
     }
 
-
     @Override
     public void registerUser(@Valid RegisterUserRequest request) {
         try {
@@ -233,8 +230,8 @@ public class AuthServiceDefault implements AuthService {
 
     private void validateRoleCreation(Role currentUserRole, Role targetRole) {
         boolean isAllowed = switch (currentUserRole) {
-//            case ADMIN -> targetRole == Role.CANDIDATE;
-//            case CANDIDATE -> false;
+            // case ADMIN -> targetRole == Role.CANDIDATE;
+            // case CANDIDATE -> false;
             default -> false;
         };
 
@@ -294,15 +291,16 @@ public class AuthServiceDefault implements AuthService {
                     // Map experiences
                     .experiences(doctor.getExperiences() != null
                             ? doctor.getExperiences().stream()
-                                .map(exp -> ma.hariti.asmaa.mydoctor.userservice.dto.response.ExperienceResponse.builder()
-                                        .id(exp.getId())
-                                        .institution(exp.getInstitution())
-                                        .position(exp.getPosition())
-                                        .startDate(exp.getStartDate())
-                                        .endDate(exp.getEndDate())
-                                        .description(exp.getDescription())
-                                        .build())
-                                .collect(java.util.stream.Collectors.toList())
+                                    .map(exp -> ma.hariti.asmaa.mydoctor.userservice.dto.response.ExperienceResponse
+                                            .builder()
+                                            .id(exp.getId())
+                                            .institution(exp.getInstitution())
+                                            .position(exp.getPosition())
+                                            .startDate(exp.getStartDate())
+                                            .endDate(exp.getEndDate())
+                                            .description(exp.getDescription())
+                                            .build())
+                                    .collect(java.util.stream.Collectors.toList())
                             : java.util.Collections.emptyList())
                     // Map diplomas
                     .diplomaPaths(doctor.getDiplomaPaths())
@@ -314,12 +312,12 @@ public class AuthServiceDefault implements AuthService {
 
     @Override
     public void logout(String refreshToken) {
-        // Implementation depends on how you handle refresh tokens (database vs jwt only)
-        // userRepository.deleteByResetToken(refreshToken); 
+        // Implementation depends on how you handle refresh tokens (database vs jwt
+        // only)
+        // userRepository.deleteByResetToken(refreshToken);
         // For now, doing nothing or just logging
         System.out.println("User logged out successfully. Refresh token invalidated.");
     }
-
 
     @Override
     public UserProfileResponse updateUserProfile(String email, UpdateProfileRequest request) {
@@ -335,10 +333,14 @@ public class AuthServiceDefault implements AuthService {
 
         // Update Doctor specific fields
         if (user instanceof Doctor doctor) {
-            if (request.getSpecialization() != null) doctor.setSpecialization(request.getSpecialization());
-            if (request.getEducation() != null) doctor.setEducation(request.getEducation());
-            if (request.getDescription() != null) doctor.setDescription(request.getDescription());
-            
+            log.info("Updating doctor profile. Diplomas in request: {}", request.getDiplomaPaths());
+            if (request.getSpecialization() != null)
+                doctor.setSpecialization(request.getSpecialization());
+            if (request.getEducation() != null)
+                doctor.setEducation(request.getEducation());
+            if (request.getDescription() != null)
+                doctor.setDescription(request.getDescription());
+
             // Update Experiences
             if (request.getExperiences() != null) {
                 // Clear existing (simple approach: remove all and re-add)
@@ -347,10 +349,11 @@ public class AuthServiceDefault implements AuthService {
                 } else {
                     doctor.setExperiences(new java.util.ArrayList<>());
                 }
-                
+
                 // Add new
                 for (ExperienceRequest expReq : request.getExperiences()) {
-                    ma.hariti.asmaa.mydoctor.userservice.entity.Experience experience = ma.hariti.asmaa.mydoctor.userservice.entity.Experience.builder()
+                    ma.hariti.asmaa.mydoctor.userservice.entity.Experience experience = ma.hariti.asmaa.mydoctor.userservice.entity.Experience
+                            .builder()
                             .institution(expReq.getInstitution())
                             .position(expReq.getPosition())
                             .startDate(expReq.getStartDate())
@@ -359,6 +362,16 @@ public class AuthServiceDefault implements AuthService {
                             .doctor(doctor)
                             .build();
                     doctor.getExperiences().add(experience);
+                }
+            }
+            // Update Diplomas
+            if (request.getDiplomaPaths() != null) {
+                // Determine if it's a new list or update existing
+                if (doctor.getDiplomaPaths() != null) {
+                    doctor.getDiplomaPaths().clear();
+                    doctor.getDiplomaPaths().addAll(request.getDiplomaPaths());
+                } else {
+                    doctor.setDiplomaPaths(new java.util.ArrayList<>(request.getDiplomaPaths()));
                 }
             }
         }

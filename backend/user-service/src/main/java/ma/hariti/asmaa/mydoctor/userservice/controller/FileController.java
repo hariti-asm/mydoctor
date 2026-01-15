@@ -23,9 +23,11 @@ public class FileController {
     @PostMapping("/upload")
     public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
         String fileName = fileService.saveFile(file);
-        // Returning only filename for now. Frontend can reconstruct URL or we can return full URL.
+        // Returning only filename for now. Frontend can reconstruct URL or we can
+        // return full URL.
         // Full URL is better usually, assuming standard path.
-        // For now, returning filename, frontend knows to fetch from /api/v1/files/{filename}
+        // For now, returning filename, frontend knows to fetch from
+        // /api/v1/files/{filename}
         return ResponseEntity.ok(Map.of("fileName", fileName, "url", "/api/v1/files/" + fileName));
     }
 
@@ -33,7 +35,7 @@ public class FileController {
     public ResponseEntity<Resource> getFile(@PathVariable String filename) {
         Resource file = fileService.loadFile(filename);
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getFilename() + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(file);
     }
