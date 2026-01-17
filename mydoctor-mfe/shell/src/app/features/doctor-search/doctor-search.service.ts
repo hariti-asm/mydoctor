@@ -27,12 +27,12 @@ export interface Page<T> {
 export class DoctorSearchService {
 
   // Updated to point to user-service port 8081
-  private apiUrl = 'http://localhost:8081/api/v1/doctors';
+  private apiUrl = 'http://localhost:9000/api/v1/doctors';
 
   constructor(private http: HttpClient) { }
 
   recommendDoctor(symptoms: string): Observable<{ specialization: string }> {
-    return this.http.post<{ specialization: string }>('http://localhost:8081/api/v1/ai/recommend', { symptoms });
+    return this.http.post<{ specialization: string }>('http://localhost:9000/api/v1/ai/recommend', { symptoms });
   }
 
   searchDoctors(filters: { specialization?: string; location?: string; language?: string }, page: number = 0, size: number = 6): Observable<Page<Doctor>> {

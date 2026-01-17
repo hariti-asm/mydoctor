@@ -13,16 +13,16 @@
              <span class="text-2xl font-bold text-green-600">{{ appointments.length }}</span>
              <span class="text-xs text-gray-500 uppercase font-semibold tracking-wider">Total</span>
          </div>
-         <div class="bg-indigo-600 px-6 py-3 rounded-2xl shadow-lg shadow-indigo-200 flex flex-col items-center transform -translate-y-2">
+         <div class="bg-green-600 px-6 py-3 rounded-2xl shadow-lg shadow-green-200 flex flex-col items-center transform -translate-y-2">
              <span class="text-2xl font-bold text-white">{{ appointments.length }}</span>
-             <span class="text-xs text-indigo-100 uppercase font-semibold tracking-wider">Upcoming</span>
+             <span class="text-xs text-green-100 uppercase font-semibold tracking-wider">Upcoming</span>
          </div>
       </div>
     </div>
 
     <!-- Loading -->
     <div *ngIf="loading" class="flex flex-col items-center justify-center py-12">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mb-4"></div>
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600 mb-4"></div>
         <p class="text-gray-400 text-sm">Syncing your schedule...</p>
     </div>
 
@@ -31,24 +31,26 @@
         
         <!-- Empty State -->
         <div *ngIf="appointments.length === 0" class="text-center py-20 bg-white rounded-3xl shadow-sm border border-dashed border-gray-200">
-            <div class="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="h-10 w-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="bg-green-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="h-10 w-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
             </div>
             <h3 class="text-lg font-bold text-gray-900">No appointments scheduled</h3>
             <p class="text-gray-500 mt-2 mb-6 max-w-sm mx-auto">Your health journey begins here. Book your first consultation today.</p>
-            <a routerLink="/doctors" class="inline-flex items-center px-6 py-3 bg-gray-900 text-white rounded-xl font-medium shadow-lg hover:bg-gray-800 transition-transform transform hover:-translate-y-1">
+            <a routerLink="/doctors" class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-xl font-medium shadow-lg hover:bg-green-700 transition-transform transform hover:-translate-y-1">
                 Find a Doctor
             </a>
         </div>
 
         <!-- List Layout -->
         <div class="space-y-4">
-            <div *ngFor="let apt of appointments" class="group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
+            <div *ngFor="let apt of appointments" class="group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6"
+                 [ngClass]="{'border-red-100 bg-red-50/10': isMissed(apt)}">
                 
                 <!-- Date Box -->
-                <div class="flex-shrink-0 bg-blue-50 text-blue-600 rounded-xl p-4 text-center min-w-[5.5rem]">
+                <div class="flex-shrink-0 rounded-xl p-4 text-center min-w-[5.5rem]"
+                     [ngClass]="isMissed(apt) ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'">
                     <span class="block text-xs font-bold uppercase tracking-wider">{{ apt.startDateTime | date:'MMM' }}</span>
                     <span class="block text-2xl font-extrabold">{{ apt.startDateTime | date:'dd' }}</span>
                     <span class="block text-xs font-medium">{{ apt.startDateTime | date:'shortTime' }}</span>
@@ -58,11 +60,17 @@
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center space-x-2 mb-1">
                         <h3 class="text-lg font-bold text-gray-900 truncate">
-                            {{ currentUser?.role === 'DOCTOR' ? 'Patient ID #' + apt.patientId : 'Dr. ID #' + apt.doctorId }}
+                            {{ currentUser?.role === 'DOCTOR' ? (participantNames[apt.patientId] || 'Patient #' + apt.patientId) : ('Dr. ' + (participantNames[apt.doctorId] || 'Doctor #' + apt.doctorId)) }}
                         </h3>
-                        <span *ngIf="apt.appointmentType === 'VIDEO'" class="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-bold flex items-center">
+                        <span *ngIf="apt.appointmentType === 'VIDEO'" class="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded-full font-bold flex items-center">
                             <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path></svg>
                             Video
+                        </span>
+                        <span *ngIf="isMissed(apt)" 
+                              (click)="openDetails(apt)"
+                              class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-bold animate-pulse cursor-help flex items-center">
+                            MISSED
+                            <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </span>
                     </div>
                     <p class="text-sm text-gray-500 mb-2 truncate">General Consultation • {{ apt.reason }}</p>
@@ -73,37 +81,47 @@
                          </div>
                          <div class="flex items-center">
                              <span class="relative flex h-2.5 w-2.5 mr-2">
-                               <span *ngIf="apt.status === 'CONFIRMED'" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                               <span *ngIf="apt.status === 'CONFIRMED' && !isMissed(apt)" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                <span class="relative inline-flex rounded-full h-2.5 w-2.5" [ngClass]="{
-                                   'bg-green-500': apt.status === 'CONFIRMED',
-                                   'bg-yellow-400': apt.status === 'PENDING',
-                                   'bg-red-500': apt.status === 'CANCELLED'
+                                   'bg-green-500': apt.status === 'CONFIRMED' && !isMissed(apt),
+                                   'bg-yellow-400': apt.status === 'PENDING' && !isMissed(apt),
+                                   'bg-red-500': apt.status === 'CANCELLED' || isMissed(apt)
                                }"></span>
                              </span>
                              <span class="font-medium" [ngClass]="{
-                                 'text-green-600': apt.status === 'CONFIRMED',
-                                 'text-yellow-600': apt.status === 'PENDING',
-                                 'text-red-600': apt.status === 'CANCELLED'
-                             }">{{ apt.status }}</span>
+                                 'text-green-600': apt.status === 'CONFIRMED' && !isMissed(apt),
+                                 'text-yellow-600': apt.status === 'PENDING' && !isMissed(apt),
+                                 'text-red-600': apt.status === 'CANCELLED' || isMissed(apt)
+                             }">{{ isMissed(apt) ? 'MISSED' : apt.status }}</span>
                          </div>
                     </div>
                 </div>
 
                 <!-- Actions -->
                 <div class="flex items-center space-x-3 w-full md:w-auto">
-                    <button *ngIf="apt.status !== 'CANCELLED'" class="flex-1 md:flex-none px-4 py-2 border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 hover:text-red-600 transition-colors">
+                    <button *ngIf="apt.status !== 'CANCELLED' && !isMissed(apt)" class="flex-1 md:flex-none px-4 py-2 border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 hover:text-red-600 transition-colors">
                         Cancel
                     </button>
                     
-                    <button *ngIf="apt.appointmentType === 'VIDEO' && apt.status !== 'CANCELLED'" 
+                    <button *ngIf="apt.appointmentType === 'VIDEO' && apt.status !== 'CANCELLED' && !isMissed(apt)" 
                             [routerLink]="['/portal/video-call', apt.id!]"
-                            class="flex-1 md:flex-none px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg text-sm font-bold shadow-md hover:shadow-lg hover:from-purple-700 hover:to-indigo-700 transition-all transform hover:-translate-y-0.5 flex items-center justify-center">
+                            class="flex-1 md:flex-none px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg text-sm font-bold shadow-md hover:shadow-lg hover:from-green-700 hover:to-emerald-700 transition-all transform hover:-translate-y-0.5 flex items-center justify-center">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         Join Call
                     </button>
 
-                    <button *ngIf="apt.status === 'CONFIRMED' && apt.appointmentType !== 'VIDEO'" class="flex-1 md:flex-none px-5 py-2 bg-gray-900 text-white rounded-lg text-sm font-bold shadow-md hover:bg-gray-800 transition-colors">
-                        Details
+                    <button *ngIf="(apt.status === 'CONFIRMED' || isMissed(apt)) && apt.appointmentType !== 'VIDEO' || isMissed(apt)" 
+                            (click)="openDetails(apt)"
+                            class="flex-1 md:flex-none px-5 py-2 bg-gray-900 text-white rounded-lg text-sm font-bold shadow-md hover:bg-gray-800 transition-colors">
+                        {{ isMissed(apt) ? 'Why?' : 'Details' }}
+                    </button>
+
+                    <!-- Prescribe Button (Doctor Only) -->
+                    <button *ngIf="currentUser?.role === 'DOCTOR' && (apt.status === 'CONFIRMED' || apt.status === 'COMPLETED' || isMissed(apt)) && apt.status !== 'CANCELLED'"
+                            (click)="openPrescription(apt)"
+                            class="flex-1 md:flex-none px-5 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold shadow-md shadow-emerald-100 hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span>Prescribe</span>
                     </button>
                 </div>
 
@@ -111,4 +129,87 @@
         </div>
     </div>
   </div>
+
+  <!-- Appointment Details Modal -->
+  <div *ngIf="isModalOpen && selectedAppointment" 
+       class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+       (click)="closeDetails()">
+    <div class="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl transform transition-all" 
+         (click)="$event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-green-50/30">
+        <div>
+          <h2 class="text-2xl font-black text-gray-900">Appointment Details</h2>
+          <p class="text-sm text-green-600 font-bold uppercase tracking-wider mt-1">Ref #{{ selectedAppointment.id }}</p>
+        </div>
+        <button (click)="closeDetails()" class="p-2 hover:bg-white rounded-full transition-colors text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-8 space-y-6">
+        
+        <!-- Status Banner for Missed -->
+        <div *ngIf="isMissed(selectedAppointment)" class="bg-red-50 border border-red-100 rounded-2xl p-5 flex items-start space-x-4">
+          <div class="p-2 bg-red-100 rounded-lg text-red-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </div>
+          <div>
+            <h4 class="font-bold text-red-800">Missed Appointment</h4>
+            <p class="text-sm text-red-600 mt-1 leading-relaxed">
+              {{ getMissedExplanation(selectedAppointment) }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-1">
+            <span class="text-xs font-bold text-gray-400 uppercase">Patient / Doctor</span>
+            <p class="font-bold text-gray-900">{{ currentUser?.role === 'DOCTOR' ? (participantNames[selectedAppointment.patientId] || 'Patient #' + selectedAppointment.patientId) : ('Dr. ' + (participantNames[selectedAppointment.doctorId] || 'Doctor #' + selectedAppointment.doctorId)) }}</p>
+          </div>
+          <div class="space-y-1">
+            <span class="text-xs font-bold text-gray-400 uppercase">Consultation Type</span>
+            <p class="font-bold text-gray-900">{{ selectedAppointment.appointmentType }}</p>
+          </div>
+          <div class="space-y-1">
+            <span class="text-xs font-bold text-gray-400 uppercase">Date & Time</span>
+            <p class="font-bold text-gray-900">{{ selectedAppointment.startDateTime | date:'medium' }}</p>
+          </div>
+          <div class="space-y-1">
+            <span class="text-xs font-bold text-gray-400 uppercase">Status</span>
+            <p class="font-bold" [ngClass]="isMissed(selectedAppointment) ? 'text-red-600' : 'text-green-600'">
+              {{ isMissed(selectedAppointment) ? 'MISSED' : selectedAppointment.status }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Reason -->
+        <div class="space-y-2">
+            <span class="text-xs font-bold text-gray-400 uppercase text-center block">Reason for Consultation</span>
+            <div class="bg-gray-50 rounded-2xl p-4 text-gray-600 text-sm italic text-center border border-gray-100">
+                "{{ selectedAppointment.reason }}"
+            </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-8 py-6 border-t border-gray-50 bg-gray-50/50 flex space-x-4">
+        <button (click)="closeDetails()" class="flex-1 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-100 transition-all">
+          Close Details
+        </button>
+        <button *ngIf="!isMissed(selectedAppointment)" class="flex-1 px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-all shadow-lg shadow-green-100">
+          Print Receipt
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <app-prescription-modal 
+    *ngIf="isPrescriptionModalOpen && appointmentToPrescribe" 
+    [appointment]="appointmentToPrescribe"
+    (closed)="onPrescriptionClosed($event)">
+  </app-prescription-modal>
 </div>

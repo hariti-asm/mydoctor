@@ -7,9 +7,8 @@ import { Appointment, CreateAppointmentRequest } from '../models/appointment.mod
   providedIn: 'root'
 })
 export class AppointmentService {
-  // Pointing to the appointment-service directly for now (port 8082)
-  // In a real prod setup, this would go through API Gateway (8080)
-  private apiUrl = 'http://localhost:8082/api/v1/appointments';
+  // Pointing to the API Gateway (9000)
+  private apiUrl = 'http://localhost:9000/api/v1/appointments';
 
   constructor(private http: HttpClient) {}
 

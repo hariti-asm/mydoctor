@@ -37,4 +37,21 @@ public class AppointmentApplicationService {
         appointment.cancel();
         appointmentRepository.save(appointment);
     }
+
+    public List<String> getAvailableSlots(Long doctorId, String date) {
+        // Simple mock logic: Return slots from 09:00 to 17:00 excluding booked ones
+        java.util.List<String> allSlots = java.util.Arrays.asList(
+            "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"
+        );
+        
+        List<Appointment> existing = appointmentRepository.findByDoctorId(doctorId);
+        java.util.List<String> bookedSlots = existing.stream()
+            .filter(a -> a.getStartDateTime() != null && a.getStartDateTime().toString().startsWith(date))
+            .map(a -> a.getStartDateTime().toLocalTime().toString().substring(0, 5))
+            .toList();
+
+        return allSlots.stream()
+            .filter(slot -> !bookedSlots.contains(slot))
+            .toList();
+    }
 }

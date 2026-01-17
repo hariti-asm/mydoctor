@@ -38,4 +38,9 @@ public class AppointmentController {
         appointmentService.cancelAppointment(id);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/available-slots")
+    public ResponseEntity<List<String>> getAvailableSlots(@RequestParam Long doctorId, @RequestParam String date) {
+        return ResponseEntity.ok(appointmentService.getAvailableSlots(doctorId, date));
+    }
 }

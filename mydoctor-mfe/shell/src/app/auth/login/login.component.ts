@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -11,7 +12,7 @@ import { AuthService } from '../../core/services/auth.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   isLoading = false;
   errorMessage: string | null = null;
@@ -25,6 +26,24 @@ export class LoginComponent {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]]
+    });
+  }
+
+  ngOnInit(): void {
+    if (this.authService.isAuthenticated()) {
+      this.redirectByRole();
+    }
+  }
+
+  private redirectByRole(): void {
+    this.authService.waitForProfile().pipe(take(1)).subscribe(profile => {
+      if (profile.role === 'DOCTOR') {
+        this.router.navigate(['/portal/doctor/dashboard']);
+      } else if (profile.role === 'PATIENT') {
+        this.router.navigate(['/portal/patient/dashboard']);
+      } else {
+        this.router.navigate(['/']);
+      }
     });
   }
 

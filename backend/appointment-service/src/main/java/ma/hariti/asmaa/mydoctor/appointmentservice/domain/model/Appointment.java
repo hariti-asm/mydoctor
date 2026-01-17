@@ -17,9 +17,11 @@ public class Appointment {
     private Long doctorId;
     private Long patientId;
     private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
     private String status; // PENDING, CONFIRMED, CANCELLED
     private String appointmentType; // IN_PERSON, VIDEO
     private String reason;
+    private String notes;
 
     public boolean isUpcoming() {
         return startDateTime != null && startDateTime.isAfter(LocalDateTime.now());

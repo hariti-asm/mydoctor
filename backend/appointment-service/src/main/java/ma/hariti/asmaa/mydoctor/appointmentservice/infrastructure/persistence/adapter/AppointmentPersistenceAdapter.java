@@ -51,9 +51,11 @@ public class AppointmentPersistenceAdapter implements AppointmentRepository {
                 .doctorId(appointment.getDoctorId())
                 .patientId(appointment.getPatientId())
                 .startDateTime(appointment.getStartDateTime())
+                .endDateTime(appointment.getEndDateTime())
                 .status(appointment.getStatus())
                 .appointmentType(appointment.getAppointmentType())
                 .reason(appointment.getReason())
+                .notes(appointment.getNotes())
                 .build();
     }
 
@@ -63,9 +65,11 @@ public class AppointmentPersistenceAdapter implements AppointmentRepository {
                 .doctorId(entity.getDoctorId())
                 .patientId(entity.getPatientId())
                 .startDateTime(entity.getStartDateTime())
+                .endDateTime(entity.getEndDateTime())
                 .status(entity.getStatus())
                 .appointmentType(entity.getAppointmentType())
                 .reason(entity.getReason())
+                .notes(entity.getNotes())
                 .build();
     }
 }

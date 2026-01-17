@@ -1,4 +1,4 @@
-import { BehaviorSubject, catchError, map, Observable, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, filter, map, Observable, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Auth } from '../models/auth.model';
@@ -11,6 +11,7 @@ import { Injectable } from '@angular/core';
 @Injectable()
 export class AuthService {
   private apiUrl = 'http://localhost:9000/api/v1/auth';
+  private apiUrlUsers = 'http://localhost:9000/api/v1/users';
 
   private isLoggedInSubject = new BehaviorSubject<boolean>(this.checkLoginStatus());
   public isLoggedIn$: Observable<boolean> = this.isLoggedInSubject.asObservable();
@@ -160,7 +161,17 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return this.isLoggedInSubject.value;
+    return !!this.getAccessToken() && this.isLoggedInSubject.value;
+  }
+
+  /**
+   * Returns an observable that waits until the user profile is loaded.
+   * Useful for guards to avoid race conditions.
+   */
+  waitForProfile(): Observable<UserProfileResponse> {
+    return this.userProfile$.pipe(
+      filter((profile): profile is UserProfileResponse => !!profile)
+    );
   }
 
   // Logout
@@ -197,6 +208,10 @@ export class AuthService {
   getUserEmail(): string | null {
     const profile = this.userProfileSubject.value;
     return profile?.email || null;
+  }
+
+  getUserInfo(id: number): Observable<UserProfileResponse> {
+    return this.http.get<UserProfileResponse>(`${this.apiUrlUsers}/${id}`);
   }
 
   // Private helper methods

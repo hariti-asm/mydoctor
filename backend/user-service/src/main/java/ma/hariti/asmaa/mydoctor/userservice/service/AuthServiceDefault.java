@@ -381,4 +381,11 @@ public class AuthServiceDefault implements AuthService {
         // Return updated profile
         return getUserProfile(email);
     }
+
+    @Override
+    public UserProfileResponse getUserProfileById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        return getUserProfile(user.getEmail());
+    }
 }

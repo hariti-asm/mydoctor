@@ -28,12 +28,12 @@ public class EmailServiceDefault implements EmailService {
         message.setSubject("Welcome to Intervo");
         message.setText("""
                 Welcome to  Intervo!
-                
+
                 Your account has been created successfully.
                 Your temporary password is: %s
-                
+
                 Please change your password after logging in for security purposes.
-                
+
                 Best regards,
                 The Intervo Team
                 """.formatted(password));
@@ -54,13 +54,13 @@ public class EmailServiceDefault implements EmailService {
         message.setSubject("Password Reset Request - My Doctor");
         message.setText("""
                 Hello,
-                
+
                 We received a request to reset your password.
                 To reset your password, use the following token: %s
-                
+
                 If you didn't request this, please ignore this email or contact support.
                 This token will expire in 30 minutes.
-                
+
                 Best regards,
                 The MyDoctor Team
                 """.formatted(resetToken));
@@ -70,6 +70,42 @@ public class EmailServiceDefault implements EmailService {
             log.info("Password reset email sent successfully to: {}", to);
         } catch (Exception e) {
             log.error("Failed to send password reset email to: {}", to, e);
+        }
+    }
+
+    @Override
+    public void sendPrescriptionEmail(String to, String patientName, String doctorName, String diagnosis,
+            String prescription, String notes) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(to);
+        message.setSubject("New Prescription From Dr. " + doctorName + " - MyDoctor");
+        message.setText("""
+                Hello %s,
+
+                You have received a new prescription from Dr. %s.
+
+                --- APPOINTMENT DETAILS ---
+                Diagnosis: %s
+                Prescription:
+                %s
+
+                Additional Notes:
+                %s
+
+                --------------------------
+
+                You can also view this prescription in your patient portal.
+
+                Best regards,
+                The MyDoctor Team
+                """.formatted(patientName, doctorName, diagnosis, prescription, notes));
+
+        try {
+            mailSender.send(message);
+            log.info("Prescription email sent successfully to: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send prescription email to: {}", to, e);
         }
     }
 }

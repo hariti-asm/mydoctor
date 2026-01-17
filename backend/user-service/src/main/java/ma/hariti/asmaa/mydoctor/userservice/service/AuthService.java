@@ -1,6 +1,5 @@
 package ma.hariti.asmaa.mydoctor.userservice.service;
 
-
 import ma.hariti.asmaa.mydoctor.userservice.dto.request.*;
 import ma.hariti.asmaa.mydoctor.userservice.dto.response.AuthResponse;
 import ma.hariti.asmaa.mydoctor.userservice.dto.response.UserProfileResponse;
@@ -25,4 +24,6 @@ public interface AuthService {
     void logout(String refreshToken);
 
     UserProfileResponse updateUserProfile(String email, UpdateProfileRequest request);
+
+    UserProfileResponse getUserProfileById(Long id);
 }

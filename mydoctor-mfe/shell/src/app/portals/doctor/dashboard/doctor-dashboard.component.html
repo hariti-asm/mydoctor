@@ -1,0 +1,80 @@
+<div class="space-y-8">
+  <!-- Welcome Banner -->
+  <div class="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between">
+     <div class="text-center md:text-left">
+        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Welcome, Dr. {{ (authService.userProfile$ | async)?.firstName }}</h1>
+        <p class="text-gray-500 mt-2 text-lg font-medium">You have <span class="text-green-600 font-bold">{{ todaysAppointments.length }} appointments</span> scheduled for today.</p>
+     </div>
+     <div class="mt-6 md:mt-0">
+         <button routerLink="/appointments/my-appointments" class="px-8 py-3 bg-green-600 text-white rounded-2xl font-bold shadow-lg shadow-green-200 hover:bg-green-700 transition-all transform hover:-translate-y-1">
+             View Schedule
+         </button>
+     </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="bg-green-50 p-6 rounded-2xl border border-green-100">
+          <span class="text-green-600 font-bold block mb-1">Today</span>
+          <h3 class="text-3xl font-black text-green-900">{{ todaysAppointments.length }}</h3>
+          <p class="text-green-400 text-sm mt-1">Appointments</p>
+      </div>
+      <div class="bg-emerald-50 p-6 rounded-2xl border border-emerald-100">
+          <span class="text-emerald-600 font-bold block mb-1">Upcoming</span>
+          <h3 class="text-3xl font-black text-emerald-900">{{ upcomingCount }}</h3>
+          <p class="text-emerald-400 text-sm mt-1">Next 7 days</p>
+      </div>
+      <div class="bg-teal-50 p-6 rounded-2xl border border-teal-100">
+          <span class="text-teal-600 font-bold block mb-1">Patients</span>
+          <h3 class="text-3xl font-black text-teal-900">{{ totalPatients }}</h3>
+          <p class="text-teal-400 text-sm mt-1">Total Registry</p>
+      </div>
+      <div class="bg-emerald-50 p-6 rounded-2xl border border-emerald-100">
+          <span class="text-emerald-600 font-bold block mb-1">Pending</span>
+          <h3 class="text-3xl font-black text-emerald-900">{{ pendingRequests }}</h3>
+          <p class="text-emerald-400 text-sm mt-1">Review needed</p>
+      </div>
+  </div>
+  
+  <!-- Today's Schedule Preview -->
+  <section>
+      <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-bold text-gray-900">Today's Schedule</h2>
+          <a routerLink="/appointments/my-appointments" class="text-green-600 font-bold hover:underline">Full View</a>
+      </div>
+      
+      <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div *ngIf="todaysAppointments.length === 0" class="p-12 text-center">
+              <p class="text-gray-400 italic">No appointments for today yet.</p>
+          </div>
+          
+          <div *ngFor="let apt of todaysAppointments" class="p-6 border-b border-gray-50 flex items-center hover:bg-gray-50 transition-colors group">
+              <div class="w-20 text-green-600 font-bold">
+                  {{ apt.startDateTime | date:'HH:mm' }}
+              </div>
+              <div class="flex-1">
+                  <h4 class="font-bold text-gray-900">Patient ID #{{ apt.patientId }}</h4>
+                  <p class="text-sm text-gray-500">{{ apt.reason }}</p>
+              </div>
+              
+              <!-- Missed Badge -->
+              <div *ngIf="isMissed(apt)" class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold mr-4">
+                  MISSED
+              </div>
+
+              <div class="px-3 py-1 rounded-full text-xs font-bold mr-4" 
+                   [ngClass]="apt.appointmentType === 'VIDEO' ? 'bg-emerald-100 text-emerald-700' : 'bg-green-100 text-green-700'">
+                  {{ apt.appointmentType }}
+              </div>
+              <button *ngIf="apt.appointmentType === 'VIDEO' && !isMissed(apt)" 
+                      [routerLink]="['../video-call', apt.id!]"
+                      class="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-xs font-bold hover:bg-green-600 hover:text-white transition-all">
+                  Join Call
+              </button>
+              <button class="ml-6 p-2 text-gray-300 group-hover:text-green-600 transition-colors">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </button>
+          </div>
+      </div>
+  </section>
+</div>

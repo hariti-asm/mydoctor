@@ -9,14 +9,9 @@ export const roleGuard: CanActivateFn = (route, state) => {
   
   const expectedRoles = route.data['roles'] as Array<string>;
 
-  return authService.userProfile$.pipe(
+  return authService.waitForProfile().pipe(
     take(1),
     map(profile => {
-      if (!profile) {
-        router.navigate(['/login']);
-        return false;
-      }
-
       if (expectedRoles.includes(profile.role)) {
         return true;
       }

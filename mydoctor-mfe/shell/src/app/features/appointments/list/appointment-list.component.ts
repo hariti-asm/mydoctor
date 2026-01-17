@@ -5,17 +5,70 @@ import { AuthService } from '../../../core/services/auth.service';
 import { Appointment } from '../../../core/models/appointment.model';
 
 import { RouterModule } from '@angular/router';
+import { PrescriptionModalComponent } from '../prescription-modal/prescription-modal.component';
 
 @Component({
   selector: 'app-appointment-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, PrescriptionModalComponent],
   templateUrl: './appointment-list.component.html'
 })
 export class AppointmentListComponent implements OnInit {
   appointments: Appointment[] = [];
   loading = true;
   currentUser: any;
+  selectedAppointment: Appointment | null = null;
+  isModalOpen = false;
+  isPrescriptionModalOpen = false;
+  appointmentToPrescribe: Appointment | null = null;
+  participantNames: { [key: number]: string } = {};
+
+  isMissed(apt: Appointment): boolean {
+    if (apt.status === 'COMPLETED' || apt.status === 'CANCELLED') return false;
+    return new Date(apt.startDateTime) < new Date();
+  }
+
+  openDetails(apt: Appointment): void {
+    this.selectedAppointment = apt;
+    this.isModalOpen = true;
+  }
+
+  getMissedExplanation(apt: Appointment): string {
+    if (!this.isMissed(apt)) return '';
+    
+    const now = new Date();
+    const startTime = new Date(apt.startDateTime);
+    const diffHours = (now.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+
+    if (apt.appointmentType === 'VIDEO') {
+        return `This video consultation was scheduled for ${startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}. It is marked as missed because the secure session was not completed or the join window expired.`;
+    }
+    
+    if (diffHours > 24) {
+        return `This appointment was scheduled over 24 hours ago. It is marked as missed because it was not flagged as COMPLETED within the standard 24-hour window.`;
+    }
+
+    return `This appointment time has passed. It is marked as missed because it remains in ${apt.status} state despite the scheduled time having elapsed.`;
+  }
+
+  closeDetails(): void {
+    this.isModalOpen = false;
+    this.selectedAppointment = null;
+  }
+
+  openPrescription(apt: Appointment): void {
+    this.appointmentToPrescribe = apt;
+    this.isPrescriptionModalOpen = true;
+  }
+
+  onPrescriptionClosed(success: boolean): void {
+    this.isPrescriptionModalOpen = false;
+    this.appointmentToPrescribe = null;
+    if (success) {
+      // Reload or show success message if needed
+      this.loadAppointments(this.currentUser);
+    }
+  }
 
   constructor(
     private appointmentService: AppointmentService,
@@ -37,6 +90,7 @@ export class AppointmentListComponent implements OnInit {
           this.appointmentService.getDoctorAppointments(user.id).subscribe({
               next: (data: Appointment[]) => {
                   this.appointments = data;
+                  this.fetchParticipantNames(data, 'PATIENT');
                   this.loading = false;
               },
               error: (err: any) => {
@@ -48,6 +102,7 @@ export class AppointmentListComponent implements OnInit {
           this.appointmentService.getPatientAppointments(user.id).subscribe({
               next: (data: Appointment[]) => {
                   this.appointments = data;
+                  this.fetchParticipantNames(data, 'DOCTOR');
                   this.loading = false;
               },
               error: (err: any) => {
@@ -56,5 +111,24 @@ export class AppointmentListComponent implements OnInit {
               }
           });
       }
+  }
+
+  fetchParticipantNames(appointments: Appointment[], targetRole: 'DOCTOR' | 'PATIENT'): void {
+    const ids = targetRole === 'DOCTOR' ? appointments.map(a => a.doctorId) : appointments.map(a => a.patientId);
+    const uniqueIds = [...new Set(ids)];
+    
+    uniqueIds.forEach(id => {
+      if (!this.participantNames[id]) {
+        this.authService.getUserInfo(id).subscribe({
+          next: (profile) => {
+            this.participantNames[id] = `${profile.firstName} ${profile.lastName}`;
+          },
+          error: (err) => {
+            console.error(`Failed to fetch name for ID ${id}`, err);
+            this.participantNames[id] = `${targetRole === 'DOCTOR' ? 'Dr.' : 'Patient'} #${id}`;
+          }
+        });
+      }
+    });
   }
 }
