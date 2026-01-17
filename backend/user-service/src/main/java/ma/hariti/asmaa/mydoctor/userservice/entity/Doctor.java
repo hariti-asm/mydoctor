@@ -1,27 +1,29 @@
-package ma.hariti.asmaa.mydoctor.userservice.entity;
+        package ma.hariti.asmaa.mydoctor.userservice.entity;
 
-import jakarta.persistence.*; // Imports everything including OneToMany, ElementCollection, etc.
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-import ma.hariti.asmaa.mydoctor.userservice.entity.enums.Role;
+        import jakarta.persistence.*; // Imports everything including OneToMany, ElementCollection, etc.
+        import lombok.AllArgsConstructor;
+        import lombok.Data;
+        import lombok.NoArgsConstructor;
+        import lombok.experimental.SuperBuilder;
+        import ma.hariti.asmaa.mydoctor.userservice.entity.enums.Role;
 
-@Entity
-@DiscriminatorValue("DOCTOR")
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@SuperBuilder
-public class Doctor extends User {
-    private String specialization;
-    private String education;
+        import java.util.List;
 
-    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
-    private java.util.List<Experience> experiences;
+        @Entity
+        @DiscriminatorValue("DOCTOR")
+        @Data
+        @AllArgsConstructor
+        @NoArgsConstructor
+        @SuperBuilder
+        public class Doctor extends User {
+            private String specialization;
+            private String education;
 
-    @ElementCollection
-    private java.util.List<String> diplomaPaths;
+            @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
+            private List<Experience> experiences;
 
-    private String description;
-}
+            @ElementCollection
+            private List<String> diplomaPaths;
+
+            private String description;
+        }

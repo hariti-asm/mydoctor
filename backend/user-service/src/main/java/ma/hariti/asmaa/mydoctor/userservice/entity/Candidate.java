@@ -17,8 +17,7 @@ public class Candidate extends User {
             String password,
             Role role,
             String resetToken,
-            java.time.LocalDateTime resetTokenExpiryDate
-    ) {
-        super(id, name, email, password, role, resetToken, resetTokenExpiryDate);
+            java.time.LocalDateTime resetTokenExpiryDate) {
+        super(id, name, email, password, role, resetToken, resetTokenExpiryDate, null);
     }
 }

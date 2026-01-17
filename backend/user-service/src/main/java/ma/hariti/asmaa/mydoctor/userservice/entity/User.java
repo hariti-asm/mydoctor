@@ -42,6 +42,9 @@ public class User implements UserDetails {
 
     private LocalDateTime resetTokenExpiryDate;
 
+    @Column(name = "profile_picture")
+    private String profilePicture;
+
     // ✅ Set token and expiration date easily
     public void setResetToken(String token, int minutesToExpire) {
         this.resetToken = token;

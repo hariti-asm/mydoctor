@@ -20,11 +20,11 @@ public class Experience {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String institution; // e.g. Hospital name
-    private String position;    // e.g. Senior Cardiologist
+    private String institution;
+    private String position;
     private LocalDate startDate;
-    private LocalDate endDate;  // Null if currently working
-    private String description; // Detailed description of responsibilities
+    private LocalDate endDate;
+    private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id")
