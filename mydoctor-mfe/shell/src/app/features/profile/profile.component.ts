@@ -21,6 +21,7 @@ export class ProfileComponent implements OnInit {
     isDoctor = false;
     diplomaPaths: string[] = [];
     uploadingFile = false;
+    submitAttempted = false;
 
     constructor(
         private formBuilder: FormBuilder,
@@ -52,9 +53,9 @@ export class ProfileComponent implements OnInit {
         return this.formBuilder.group({
             institution: [exp?.institution || '', Validators.required],
             position: [exp?.position || '', Validators.required],
-            startDate: [exp?.startDate || ''],
+            startDate: [exp?.startDate || '', Validators.required],
             endDate: [exp?.endDate || ''],
-            description: [exp?.description || '']
+            description: [exp?.description || '', Validators.required]
         });
     }
 
@@ -81,6 +82,21 @@ export class ProfileComponent implements OnInit {
                     education: profile.education,
                     description: profile.description
                 });
+
+                // Set validators for doctor fields
+                if (this.isDoctor) {
+                    this.profileForm.get('specialization')?.setValidators([Validators.required]);
+                    this.profileForm.get('education')?.setValidators([Validators.required]);
+                    this.profileForm.get('description')?.setValidators([Validators.required]);
+                } else {
+                    this.profileForm.get('specialization')?.clearValidators();
+                    this.profileForm.get('education')?.clearValidators();
+                    this.profileForm.get('description')?.clearValidators();
+                }
+                this.profileForm.get('specialization')?.updateValueAndValidity();
+                this.profileForm.get('education')?.updateValueAndValidity();
+                this.profileForm.get('description')?.updateValueAndValidity();
+
 
                 // Load experiences
                 this.experiences.clear();
@@ -128,13 +144,30 @@ export class ProfileComponent implements OnInit {
     }
 
     onSubmit(): void {
+        this.submitAttempted = true;
+        this.successMessage = null;
+        this.errorMessage = null;
+
+        // Force validation update
+        this.profileForm.markAllAsTouched();
+
         if (this.profileForm.invalid) {
+            this.errorMessage = "Please fill in all required fields.";
             return;
         }
 
+        if (this.isDoctor) {
+             if (this.experiences.length === 0) {
+                 this.errorMessage = "Please add at least one experience.";
+                 return;
+             }
+             if (this.diplomaPaths.length === 0) {
+                 this.errorMessage = "Please upload at least one diploma or certification.";
+                 return;
+             }
+        }
+
         this.isLoading = true;
-        this.successMessage = null;
-        this.errorMessage = null;
 
         const formValues = this.profileForm.getRawValue();
         const updateData: Partial<UserProfileResponse> = {
@@ -151,11 +184,12 @@ export class ProfileComponent implements OnInit {
             next: (updatedProfile) => {
                 this.successMessage = 'Profile updated successfully';
                 this.isLoading = false;
+                this.submitAttempted = false;
                 // Update diplomaPaths from response
                 this.diplomaPaths = updatedProfile.diplomaPaths || [];
             },
             error: (error) => {
-                this.errorMessage = 'Failed to update profile';
+                this.errorMessage = 'Failed to update profile. Please check your data.';
                 this.isLoading = false;
                 console.error(error);
             }

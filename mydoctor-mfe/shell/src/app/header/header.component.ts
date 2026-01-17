@@ -15,6 +15,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isMobileMenuOpen = false;
   isLoggedIn = false;
   userName: string | null = null;
+  userRole: string | null = null;
 
   private subscriptions = new Subscription();
 
@@ -31,9 +32,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
     // Listen to user profile changes
     this.subscriptions.add(
       this.authService.userProfile$.subscribe(profile => {
-        this.userName = profile
-          ? `${profile.firstName}`
-          : null;
+        if (profile) {
+          this.userName = profile.firstName;
+          this.userRole = profile.role;
+        } else {
+          this.userName = null;
+          this.userRole = null;
+        }
       })
     );
   }

@@ -1,8 +1,9 @@
-import {Component} from '@angular/core';
+import { Component } from '@angular/core';
+import { DoctorSearchComponent } from '../features/doctor-search/doctor-search.component';
 
 @Component({
   selector: 'app-doctors',
-  imports: [],
+  imports: [DoctorSearchComponent],
   templateUrl: './doctors.component.html',
   standalone: true,
   styleUrl: './doctors.component.css'

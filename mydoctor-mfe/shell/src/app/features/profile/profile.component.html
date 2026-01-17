@@ -76,7 +76,11 @@
             <label for="specialization" class="block text-sm font-medium text-gray-700">Specialization</label>
             <input id="specialization" formControlName="specialization" type="text"
               class="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-              placeholder="e.g. Cardiologist, Dermatologist">
+              placeholder="e.g. Cardiologist, Dermatologist"
+              [ngClass]="{'border-red-500': profileForm.get('specialization')?.invalid && (profileForm.get('specialization')?.touched || submitAttempted)}">
+             <div *ngIf="profileForm.get('specialization')?.invalid && (profileForm.get('specialization')?.touched || submitAttempted)" class="text-red-500 text-xs mt-1">
+                Specialization is required.
+             </div>
           </div>
 
           <!-- Education -->
@@ -84,7 +88,11 @@
             <label for="education" class="block text-sm font-medium text-gray-700">Education</label>
             <input id="education" formControlName="education" type="text"
               class="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-              placeholder="e.g. MD from Harvard Medical School">
+              placeholder="e.g. MD from Harvard Medical School"
+              [ngClass]="{'border-red-500': profileForm.get('education')?.invalid && (profileForm.get('education')?.touched || submitAttempted)}">
+             <div *ngIf="profileForm.get('education')?.invalid && (profileForm.get('education')?.touched || submitAttempted)" class="text-red-500 text-xs mt-1">
+                Education is required.
+             </div>
           </div>
 
           <!-- Bio / Description -->
@@ -92,7 +100,11 @@
             <label for="description" class="block text-sm font-medium text-gray-700">Bio / Description</label>
             <textarea id="description" formControlName="description" rows="3"
               class="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-              placeholder="Tell patients about yourself..."></textarea>
+              placeholder="Tell patients about yourself..."
+              [ngClass]="{'border-red-500': profileForm.get('description')?.invalid && (profileForm.get('description')?.touched || submitAttempted)}"></textarea>
+             <div *ngIf="profileForm.get('description')?.invalid && (profileForm.get('description')?.touched || submitAttempted)" class="text-red-500 text-xs mt-1">
+                Description is required.
+             </div>
           </div>
         </div>
 
@@ -125,18 +137,21 @@
                   <label class="block text-sm font-medium text-gray-700">Institution</label>
                   <input formControlName="institution" type="text"
                     class="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                    placeholder="Hospital / Clinic name">
+                    placeholder="Hospital / Clinic name"
+                    [ngClass]="{'border-red-500': exp.get('institution')?.invalid && (exp.get('institution')?.touched || submitAttempted)}">
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">Position</label>
                   <input formControlName="position" type="text"
                     class="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                    placeholder="e.g. Senior Cardiologist">
+                    placeholder="e.g. Senior Cardiologist"
+                    [ngClass]="{'border-red-500': exp.get('position')?.invalid && (exp.get('position')?.touched || submitAttempted)}">
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">Start Date</label>
                   <input formControlName="startDate" type="date"
-                    class="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                    class="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                    [ngClass]="{'border-red-500': exp.get('startDate')?.invalid && (exp.get('startDate')?.touched || submitAttempted)}">
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">End Date</label>
@@ -149,13 +164,16 @@
                 <label class="block text-sm font-medium text-gray-700">Description</label>
                 <textarea formControlName="description" rows="2"
                   class="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                  placeholder="Describe your responsibilities..."></textarea>
+                  placeholder="Describe your responsibilities..."
+                  [ngClass]="{'border-red-500': exp.get('description')?.invalid && (exp.get('description')?.touched || submitAttempted)}"></textarea>
               </div>
             </div>
           </div>
 
           <div *ngIf="experiences.length === 0" class="text-center py-4 text-gray-500 text-sm">
-            No work experience added yet. Click "Add Experience" to add one.
+            <span [ngClass]="{'text-red-500': submitAttempted}">
+                No work experience added yet. Doctors must have at least one experience.
+            </span>
           </div>
         </div>
 
@@ -187,7 +205,7 @@
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                   </path>
                 </svg>
-                <a [href]="'http://localhost:8084' + path" target="_blank"
+                <a [href]="'http://localhost:8081' + path" target="_blank"
                   class="text-green-600 hover:underline text-sm">
                   {{ path.split('/').pop() }}
                 </a>
@@ -203,7 +221,9 @@
           </div>
 
           <div *ngIf="diplomaPaths.length === 0" class="text-center py-4 text-gray-500 text-sm">
-            No documents uploaded yet.
+             <span [ngClass]="{'text-red-500': submitAttempted}">
+                No documents uploaded yet. Doctors must include diplomas.
+             </span>
           </div>
         </div>
       </div>
