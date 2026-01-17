@@ -10,7 +10,7 @@ import RegisterRequest = Auth.RegisterRequest;
 import { Injectable } from '@angular/core';
 @Injectable()
 export class AuthService {
-  private apiUrl = 'http://localhost:8081/api/v1/auth';
+  private apiUrl = 'http://localhost:9000/api/v1/auth';
 
   private isLoggedInSubject = new BehaviorSubject<boolean>(this.checkLoginStatus());
   public isLoggedIn$: Observable<boolean> = this.isLoggedInSubject.asObservable();
@@ -32,7 +32,7 @@ export class AuthService {
   }
 
   // Login
-  login(email: string, password: string, rememberMe = false): Observable<boolean> {
+  login(email: string, password: string, rememberMe = false): Observable<AuthResponse | null> {
     const loginRequest: LoginRequest = { email, password, rememberMe };
 
     return this.http.post<ApiResponse<AuthResponse>>(`${this.apiUrl}/login`, loginRequest)
@@ -44,7 +44,7 @@ export class AuthService {
             this.loadUserProfile();
           }
         }),
-        map(response => response.success),
+        map(response => response.success ? response.data || null : null),
         catchError(error => {
           console.error('Login error:', error);
           return throwError(() => error);
@@ -159,6 +159,10 @@ export class AuthService {
       );
   }
 
+  isAuthenticated(): boolean {
+    return this.isLoggedInSubject.value;
+  }
+
   // Logout
   logout(): void {
     const refreshToken = localStorage.getItem('refreshToken');
@@ -178,10 +182,6 @@ export class AuthService {
     this.router.navigate(['/']);
   }
 
-  // Check if user is authenticated
-  isAuthenticated(): boolean {
-    return this.isLoggedInSubject.value;
-  }
 
   // Get access token
   getAccessToken(): string | null {

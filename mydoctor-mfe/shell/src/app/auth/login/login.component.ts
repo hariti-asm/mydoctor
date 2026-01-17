@@ -43,9 +43,16 @@ export class LoginComponent {
     const { email, password } = this.loginForm.value;
 
     this.authService.login(email, password).subscribe({
-      next: (success) => {
-        if (success) {
-          this.router.navigate(['/']);
+      next: (authResponse) => {
+        if (authResponse && authResponse.user) {
+          const role = authResponse.user.role;
+          if (role === 'DOCTOR') {
+            this.router.navigate(['/portal/doctor/dashboard']);
+          } else if (role === 'PATIENT') {
+            this.router.navigate(['/portal/patient/dashboard']);
+          } else {
+            this.router.navigate(['/']);
+          }
         } else {
           this.errorMessage = 'Invalid email or password';
         }
