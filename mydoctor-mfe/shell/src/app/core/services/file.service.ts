@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { ConfigService } from './config.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -11,9 +12,14 @@ export interface FileUploadResponse {
     providedIn: 'root'
 })
 export class FileService {
-    private apiUrl = 'http://localhost:9000/api/v1/files';
+    private apiUrl: string;
 
-    constructor(private http: HttpClient) { }
+    constructor(
+        private http: HttpClient,
+        private configService: ConfigService
+    ) {
+        this.apiUrl = `${this.configService.apiUrl}/api/v1/files`;
+    }
 
     uploadFile(file: File): Observable<FileUploadResponse> {
         const formData = new FormData();

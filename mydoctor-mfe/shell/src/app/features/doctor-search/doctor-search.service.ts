@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { ConfigService } from '../../core/services/config.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -26,13 +27,19 @@ export interface Page<T> {
 })
 export class DoctorSearchService {
 
-  // Updated to point to user-service port 8081
-  private apiUrl = 'http://localhost:9000/api/v1/doctors';
+  private apiUrl: string;
+  private aiUrl: string;
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private configService: ConfigService
+  ) {
+    this.apiUrl = `${this.configService.apiUrl}/api/v1/doctors`;
+    this.aiUrl = `${this.configService.apiUrl}/api/v1/ai`;
+  }
 
   recommendDoctor(symptoms: string): Observable<{ specialization: string }> {
-    return this.http.post<{ specialization: string }>('http://localhost:9000/api/v1/ai/recommend', { symptoms });
+    return this.http.post<{ specialization: string }>(`${this.aiUrl}/recommend`, { symptoms });
   }
 
   searchDoctors(filters: { specialization?: string; location?: string; language?: string }, page: number = 0, size: number = 6): Observable<Page<Doctor>> {

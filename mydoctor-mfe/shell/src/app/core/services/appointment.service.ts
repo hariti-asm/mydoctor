@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { ConfigService } from './config.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Appointment, CreateAppointmentRequest } from '../models/appointment.model';
@@ -7,10 +8,14 @@ import { Appointment, CreateAppointmentRequest } from '../models/appointment.mod
   providedIn: 'root'
 })
 export class AppointmentService {
-  // Pointing to the API Gateway (9000)
-  private apiUrl = 'http://localhost:9000/api/v1/appointments';
+  private apiUrl: string;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private configService: ConfigService
+  ) {
+    this.apiUrl = `${this.configService.apiUrl}/api/v1/appointments`;
+  }
 
   createAppointment(request: CreateAppointmentRequest): Observable<Appointment> {
     return this.http.post<Appointment>(this.apiUrl, request);

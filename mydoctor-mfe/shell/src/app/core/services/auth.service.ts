@@ -8,10 +8,12 @@ import ApiResponse = Auth.ApiResponse;
 import AuthResponse = Auth.AuthResponse;
 import RegisterRequest = Auth.RegisterRequest;
 import { Injectable } from '@angular/core';
+import { ConfigService } from './config.service';
+
 @Injectable()
 export class AuthService {
-  private apiUrl = 'http://localhost:9000/api/v1/auth';
-  private apiUrlUsers = 'http://localhost:9000/api/v1/users';
+  private apiUrl: string;
+  private apiUrlUsers: string;
 
   private isLoggedInSubject = new BehaviorSubject<boolean>(this.checkLoginStatus());
   public isLoggedIn$: Observable<boolean> = this.isLoggedInSubject.asObservable();
@@ -21,8 +23,11 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private configService: ConfigService
   ) {
+    this.apiUrl = `${this.configService.apiUrl}/api/v1/auth`;
+    this.apiUrlUsers = `${this.configService.apiUrl}/api/v1/users`;
     if (this.checkLoginStatus()) {
       this.loadUserProfile();
     }

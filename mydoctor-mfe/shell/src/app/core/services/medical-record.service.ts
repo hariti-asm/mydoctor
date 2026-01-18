@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { ConfigService } from './config.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { MedicalRecord, PrescriptionEmailRequest } from '../models/medical-record.model';
@@ -7,10 +8,16 @@ import { MedicalRecord, PrescriptionEmailRequest } from '../models/medical-recor
   providedIn: 'root'
 })
 export class MedicalRecordService {
-  private recordUrl = 'http://localhost:9000/api/v1/medical-records';
-  private notifyUrl = 'http://localhost:9000/api/v1/notifications';
+  private recordUrl: string;
+  private notifyUrl: string;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private configService: ConfigService
+  ) {
+    this.recordUrl = `${this.configService.apiUrl}/api/v1/medical-records`;
+    this.notifyUrl = `${this.configService.apiUrl}/api/v1/notifications`;
+  }
 
   createRecord(record: MedicalRecord): Observable<MedicalRecord> {
     return this.http.post<MedicalRecord>(this.recordUrl, record);
