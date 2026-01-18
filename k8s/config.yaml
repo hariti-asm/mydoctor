@@ -5,6 +5,7 @@ metadata:
 data:
   EUREKA_URL: "http://discovery-server:8761/eureka/"
   FRONTEND_URL: "http://localhost:4200" # Update this to your LoadBalancer IP later
+  API_URL: "http://localhost:9000" # Update this to your LoadBalancer IP later
   DB_HOST: "postgres"
   AWS_REGION: "eu-west-3"
   S3_BUCKET: "mydoctor-recordings"
@@ -12,12 +13,21 @@ data:
   SQS_QUEUE: "transcription-queue"
 ---
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+data:
+  config.json: |
+    {
+      "apiUrl": "http://api-gateway:9000"
+    }
+---
+apiVersion: v1
 kind: Secret
 metadata:
   name: mydoctor-secrets
 type: Opaque
-data:
-  # Base64 encoded values
+stringData:
   AWS_ACCESS_KEY: ""
   AWS_SECRET_KEY: ""
   DB_PASSWORD: ""

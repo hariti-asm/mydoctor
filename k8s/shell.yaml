@@ -17,6 +17,14 @@ spec:
           image: REPLACE_WITH_YOUR_ACCOUNT.dkr.ecr.eu-west-3.amazonaws.com/mydoctor-shell:latest
           ports:
             - containerPort: 80
+          volumeMounts:
+            - name: config-volume
+              mountPath: /usr/share/nginx/html/assets/config.json
+              subPath: config.json
+      volumes:
+        - name: config-volume
+          configMap:
+            name: frontend-config
 ---
 apiVersion: v1
 kind: Service

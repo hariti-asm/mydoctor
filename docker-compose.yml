@@ -31,7 +31,7 @@ services:
       - discovery-server
     environment:
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-server:8761/eureka/
-      - APP_FRONTEND_URL=http://localhost:4200
+      - APP_FRONTEND_URL=${APP_FRONTEND_URL:-http://localhost:4200}
 
   user-service:
     build: ./backend/user-service
@@ -43,7 +43,7 @@ services:
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-server:8761/eureka/
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mydoctor_user_service
       - SPRING_DATASOURCE_PASSWORD=""
-      - APP_FRONTEND_URL=http://localhost:4200
+      - APP_FRONTEND_URL=${APP_FRONTEND_URL:-http://localhost:4200}
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
