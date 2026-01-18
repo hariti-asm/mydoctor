@@ -7,7 +7,7 @@ data:
   FRONTEND_URL: "http://localhost:4200" # Update this to your LoadBalancer IP later
   API_URL: "http://localhost:9000" # Update this to your LoadBalancer IP later
   DB_HOST: "postgres"
-  AWS_REGION: "eu-west-3"
+  AWS_REGION: "us-east-1"
   S3_BUCKET: "mydoctor-recordings"
   S3_TRANSCRIPT_BUCKET: "mydoctor-transcripts"
   SQS_QUEUE: "transcription-queue"

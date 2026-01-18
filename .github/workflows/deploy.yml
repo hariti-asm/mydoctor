@@ -124,5 +124,5 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          sed -i "s/REPLACE_WITH_YOUR_ACCOUNT/$ACCOUNT_ID/g" k8s/*.yaml
+          sed -i "s/REPLACE_WITH_YOUR_ACCOUNT/$ACCOUNT_ID/g; s/eu-west-3/${{ secrets.AWS_REGION }}/g" k8s/*.yaml
           kubectl apply -f k8s/

@@ -96,7 +96,7 @@ services:
       - SERVICES_APPOINTMENT_URL=http://appointment-service:8082/api/v1/appointments
       - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
       - AWS_SECRET_KEY=${AWS_SECRET_KEY}
-      - AWS_REGION=eu-west-3
+      - AWS_REGION=us-east-1
 
   shell:
     build: ./mydoctor-mfe/shell
