@@ -1,6 +1,7 @@
 package ma.hariti.asmaa.mydoctor.userservice.controller;
 
 import lombok.RequiredArgsConstructor;
+import ma.hariti.asmaa.mydoctor.userservice.dto.request.AppointmentNotificationRequest;
 import ma.hariti.asmaa.mydoctor.userservice.dto.request.PrescriptionEmailRequest;
 import ma.hariti.asmaa.mydoctor.userservice.service.EmailService;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,18 @@ public class NotificationController {
                 request.getDiagnosis(),
                 request.getPrescription(),
                 request.getNotes());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/appointment")
+    public ResponseEntity<Void> sendAppointmentNotification(@RequestBody AppointmentNotificationRequest request) {
+        emailService.sendMeetingLinkEmail(
+                request.getTo(),
+                request.getPatientName(),
+                request.getDoctorName(),
+                request.getAppointmentDate(),
+                request.getAppointmentTime(),
+                request.getMeetingLink());
         return ResponseEntity.ok().build();
     }
 }

@@ -23,8 +23,26 @@ public class MedicalRecordController {
         return ResponseEntity.ok(medicalRecordService.getRecordsByPatientId(patientId));
     }
 
+    @GetMapping("/appointment/{appointmentId}")
+    public ResponseEntity<MedicalRecord> getRecordByAppointment(@PathVariable String appointmentId) {
+        return medicalRecordService.getRecordByAppointmentId(appointmentId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping
     public ResponseEntity<List<MedicalRecord>> getAllRecords() {
         return ResponseEntity.ok(medicalRecordService.getAllRecords());
+    }
+
+    @PostMapping("/upload-recording/{appointmentId}")
+    public ResponseEntity<Void> uploadRecording(@PathVariable String appointmentId, @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        medicalRecordService.processRecording(appointmentId, file);
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/{recordId}/attachments")
+    public ResponseEntity<String> uploadAttachment(@PathVariable Long recordId, @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        return ResponseEntity.ok(medicalRecordService.uploadAttachment(recordId, file));
     }
 }

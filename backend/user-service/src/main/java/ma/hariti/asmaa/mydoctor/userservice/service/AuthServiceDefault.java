@@ -334,12 +334,27 @@ public class AuthServiceDefault implements AuthService {
         // Update Doctor specific fields
         if (user instanceof Doctor doctor) {
             log.info("Updating doctor profile. Diplomas in request: {}", request.getDiplomaPaths());
-            if (request.getSpecialization() != null)
-                doctor.setSpecialization(request.getSpecialization());
-            if (request.getEducation() != null)
-                doctor.setEducation(request.getEducation());
-            if (request.getDescription() != null)
-                doctor.setDescription(request.getDescription());
+
+            // Manual validation for doctor fields since we removed them from DTO @NotBlank
+            if (request.getSpecialization() == null || request.getSpecialization().isBlank()) {
+                throw new IllegalArgumentException("Specialization is required for doctors");
+            }
+            if (request.getEducation() == null || request.getEducation().isBlank()) {
+                throw new IllegalArgumentException("Education is required for doctors");
+            }
+            if (request.getDescription() == null || request.getDescription().isBlank()) {
+                throw new IllegalArgumentException("Description is required for doctors");
+            }
+            if (request.getExperiences() == null || request.getExperiences().isEmpty()) {
+                throw new IllegalArgumentException("At least one experience is required for doctors");
+            }
+            if (request.getDiplomaPaths() == null || request.getDiplomaPaths().isEmpty()) {
+                throw new IllegalArgumentException("At least one diploma/certification is required for doctors");
+            }
+
+            doctor.setSpecialization(request.getSpecialization());
+            doctor.setEducation(request.getEducation());
+            doctor.setDescription(request.getDescription());
 
             // Update Experiences
             if (request.getExperiences() != null) {

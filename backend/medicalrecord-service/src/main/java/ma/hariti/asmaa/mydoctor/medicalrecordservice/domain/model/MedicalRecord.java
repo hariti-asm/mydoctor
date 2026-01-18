@@ -14,10 +14,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class MedicalRecord {
     private Long id;
+    private String appointmentId;
     private Long patientId;
     private Long doctorId;
     private LocalDateTime recordDate;
     private String diagnosis;
     private String prescription;
     private String notes;
+    private String recordingUrl;
+    private String aiNotes;
+    private java.util.List<String> attachments;
+    private String transcriptionJobName;
 }

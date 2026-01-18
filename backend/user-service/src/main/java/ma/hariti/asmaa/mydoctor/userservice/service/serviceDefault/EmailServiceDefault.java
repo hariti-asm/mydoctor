@@ -25,9 +25,9 @@ public class EmailServiceDefault implements EmailService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromEmail);
         message.setTo(to);
-        message.setSubject("Welcome to Intervo");
+        message.setSubject("Welcome to MyDoctor");
         message.setText("""
-                Welcome to  Intervo!
+                Welcome to  MyDoctor!
 
                 Your account has been created successfully.
                 Your temporary password is: %s
@@ -35,7 +35,7 @@ public class EmailServiceDefault implements EmailService {
                 Please change your password after logging in for security purposes.
 
                 Best regards,
-                The Intervo Team
+                The MyDoctor Team
                 """.formatted(password));
 
         try {
@@ -106,6 +106,41 @@ public class EmailServiceDefault implements EmailService {
             log.info("Prescription email sent successfully to: {}", to);
         } catch (Exception e) {
             log.error("Failed to send prescription email to: {}", to, e);
+        }
+    }
+
+    @Override
+    public void sendMeetingLinkEmail(String to, String patientName, String doctorName, String date, String time,
+            String meetingLink) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(to);
+        message.setSubject("Video Consultation Meeting Link - MyDoctor");
+        message.setText("""
+                Hello,
+
+                This is a reminder for your video consultation on MyDoctor.
+
+                --- APPOINTMENT DETAILS ---
+                Patient: %s
+                Doctor: Dr. %s
+                Date: %s
+                Time: %s
+
+                MEETING LINK: %s
+                ---------------------------
+
+                Please ensure you have a stable internet connection and are in a quiet place before joining the call.
+
+                Best regards,
+                The MyDoctor Team
+                """.formatted(patientName, doctorName, date, time, meetingLink));
+
+        try {
+            mailSender.send(message);
+            log.info("Meeting link email sent successfully to: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send meeting link email to: {}", to, e);
         }
     }
 }

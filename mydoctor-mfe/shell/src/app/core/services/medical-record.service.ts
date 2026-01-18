@@ -23,4 +23,20 @@ export class MedicalRecordService {
   getPatientRecords(patientId: number): Observable<MedicalRecord[]> {
     return this.http.get<MedicalRecord[]>(`${this.recordUrl}/patient/${patientId}`);
   }
+
+  getRecordByAppointmentId(appointmentId: string): Observable<MedicalRecord> {
+    return this.http.get<MedicalRecord>(`${this.recordUrl}/appointment/${appointmentId}`);
+  }
+
+  uploadRecording(appointmentId: string, file: File): Observable<void> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<void>(`${this.recordUrl}/upload-recording/${appointmentId}`, formData);
+  }
+
+  uploadAttachment(recordId: number, file: File): Observable<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<string>(`${this.recordUrl}/${recordId}/attachments`, formData, { responseType: 'text' as 'json' });
+  }
 }

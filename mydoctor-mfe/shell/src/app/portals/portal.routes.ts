@@ -10,6 +10,7 @@ export const PORTAL_ROUTES: Routes = [
     loadComponent: () => import('./patient/layout/patient-layout.component').then(m => m.PatientLayoutComponent),
     children: [
         { path: 'dashboard', loadComponent: () => import('./patient/dashboard/patient-dashboard.component').then(m => m.PatientDashboardComponent) },
+        { path: 'medical-history', loadComponent: () => import('./patient/medical-history/medical-history.component').then(m => m.MedicalHistoryComponent) },
         { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

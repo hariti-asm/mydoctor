@@ -7,4 +7,7 @@ public interface EmailService {
 
     void sendPrescriptionEmail(String to, String patientName, String doctorName, String diagnosis, String prescription,
             String notes);
+
+    void sendMeetingLinkEmail(String to, String patientName, String doctorName, String date, String time,
+            String meetingLink);
 }

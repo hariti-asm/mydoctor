@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface MedicalRecordJpaRepository extends JpaRepository<MedicalRecordJpaEntity, Long> {
     List<MedicalRecordJpaEntity> findByPatientId(Long patientId);
+    java.util.Optional<MedicalRecordJpaEntity> findByAppointmentId(String appointmentId);
+    java.util.Optional<MedicalRecordJpaEntity> findByTranscriptionJobName(String transcriptionJobName);
 }

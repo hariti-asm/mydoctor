@@ -21,13 +21,23 @@ public class MedicalRecordPersistenceAdapter implements MedicalRecordRepository 
     }
 
     @Override
-    public Optional<MedicalRecord> findById(Long id) {
-        return jpaRepository.findById(id).map(this::toDomain);
+    public Optional<MedicalRecord> findByTranscriptionJobName(String transcriptionJobName) {
+        return jpaRepository.findByTranscriptionJobName(transcriptionJobName).map(this::toDomain);
     }
 
     @Override
+    public Optional<MedicalRecord> findById(Long id) {
+        return jpaRepository.findById(id).map(this::toDomain);
+    }
+    
+    @Override
     public List<MedicalRecord> findByPatientId(Long patientId) {
         return jpaRepository.findByPatientId(patientId).stream().map(this::toDomain).collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<MedicalRecord> findByAppointmentId(String appointmentId) {
+        return jpaRepository.findByAppointmentId(appointmentId).map(this::toDomain);
     }
 
     @Override
@@ -43,24 +53,34 @@ public class MedicalRecordPersistenceAdapter implements MedicalRecordRepository 
     private MedicalRecordJpaEntity toEntity(MedicalRecord record) {
         return MedicalRecordJpaEntity.builder()
                 .id(record.getId())
+                .appointmentId(record.getAppointmentId())
                 .patientId(record.getPatientId())
                 .doctorId(record.getDoctorId())
                 .recordDate(record.getRecordDate())
                 .diagnosis(record.getDiagnosis())
                 .prescription(record.getPrescription())
                 .notes(record.getNotes())
+                .recordingUrl(record.getRecordingUrl())
+                .aiNotes(record.getAiNotes())
+                .attachments(record.getAttachments())
+                .transcriptionJobName(record.getTranscriptionJobName())
                 .build();
     }
 
     private MedicalRecord toDomain(MedicalRecordJpaEntity entity) {
         return MedicalRecord.builder()
                 .id(entity.getId())
+                .appointmentId(entity.getAppointmentId())
                 .patientId(entity.getPatientId())
                 .doctorId(entity.getDoctorId())
                 .recordDate(entity.getRecordDate())
                 .diagnosis(entity.getDiagnosis())
                 .prescription(entity.getPrescription())
                 .notes(entity.getNotes())
+                .recordingUrl(entity.getRecordingUrl())
+                .aiNotes(entity.getAiNotes())
+                .attachments(entity.getAttachments())
+                .transcriptionJobName(entity.getTranscriptionJobName())
                 .build();
     }
 }

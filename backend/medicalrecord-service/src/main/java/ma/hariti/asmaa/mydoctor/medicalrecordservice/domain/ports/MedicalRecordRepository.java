@@ -8,6 +8,8 @@ public interface MedicalRecordRepository {
     MedicalRecord save(MedicalRecord record);
     Optional<MedicalRecord> findById(Long id);
     List<MedicalRecord> findByPatientId(Long patientId);
+    java.util.Optional<MedicalRecord> findByAppointmentId(String appointmentId);
+    Optional<MedicalRecord> findByTranscriptionJobName(String transcriptionJobName);
     List<MedicalRecord> findAll();
     void deleteById(Long id);
 }
