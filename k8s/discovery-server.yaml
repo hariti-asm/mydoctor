@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discovery-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discovery-server
+  template:
+    metadata:
+      labels:
+        app: discovery-server
+    spec:
+      containers:
+        - name: discovery-server
+          image: REPLACE_WITH_YOUR_ACCOUNT.dkr.ecr.eu-west-3.amazonaws.com/mydoctor-discovery-server:latest
+          ports:
+            - containerPort: 8761
+          env:
+            - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+              value: "false"
+            - name: EUREKA_CLIENT_FETCH_REGISTRY
+              value: "false"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: discovery-server
+spec:
+  ports:
+    - port: 8761
+  selector:
+    app: discovery-server
