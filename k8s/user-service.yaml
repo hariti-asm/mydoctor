@@ -27,6 +27,21 @@ spec:
               value: "jdbc:postgresql://postgres:5432/mydoctor_user_service"
             - name: SPRING_DATASOURCE_PASSWORD
               value: ""
+            - name: MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mydoctor-secrets
+                  key: MAIL_USERNAME
+            - name: MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mydoctor-secrets
+                  key: MAIL_PASSWORD
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mydoctor-secrets
+                  key: JWT_SECRET_KEY
 ---
 apiVersion: v1
 kind: Service

@@ -18,6 +18,9 @@ metadata:
 type: Opaque
 data:
   # Base64 encoded values
-  AWS_ACCESS_KEY: QUtJQVY2S1lDWU5KWE9NRFBOOVE= # Placeholder base64
-  AWS_SECRET_KEY: UU1vVUZHV0IyazIyVUlFYXF6VmFzMlRrbHMyRjFLQnNNaVVSdFZX # Placeholder base64
+  AWS_ACCESS_KEY: ""
+  AWS_SECRET_KEY: ""
   DB_PASSWORD: ""
+  MAIL_USERNAME: ""
+  MAIL_PASSWORD: ""
+  JWT_SECRET_KEY: ""
