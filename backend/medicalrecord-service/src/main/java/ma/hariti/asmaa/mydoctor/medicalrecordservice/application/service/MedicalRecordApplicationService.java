@@ -10,6 +10,14 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import org.springframework.beans.factory.annotation.Value;
+import jakarta.annotation.PostConstruct;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
+import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,8 +29,39 @@ public class MedicalRecordApplicationService {
     private final S3Client s3Client;
     private final SqsClient sqsClient;
 
-    private final String bucketName = "mydoctor-recordings";
-    private final String queueUrl = "https://sqs.eu-west-3.amazonaws.com/123456789012/transcription-queue";
+    @Value("${aws.s3.bucket}")
+    private String bucketName;
+
+    @Value("${aws.sqs.queue-name}")
+    private String queueName;
+
+    private String queueUrl;
+
+    @PostConstruct
+    public void init() {
+        ensureBucketExists();
+        ensureQueueExists();
+    }
+
+    private void ensureQueueExists() {
+        try {
+            queueUrl = sqsClient.getQueueUrl(GetQueueUrlRequest.builder().queueName(queueName).build()).queueUrl();
+        } catch (QueueDoesNotExistException e) {
+            queueUrl = sqsClient.createQueue(CreateQueueRequest.builder().queueName(queueName).build()).queueUrl();
+        }
+    }
+
+    private void ensureBucketExists() {
+        try {
+            s3Client.headBucket(HeadBucketRequest.builder().bucket(bucketName).build());
+        } catch (S3Exception e) {
+            if (e.statusCode() == 404) {
+                s3Client.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
+            } else {
+                throw e;
+            }
+        }
+    }
 
     public void processRecording(String appointmentId, MultipartFile file) {
         String s3Key = "recordings/" + appointmentId + ".webm";
