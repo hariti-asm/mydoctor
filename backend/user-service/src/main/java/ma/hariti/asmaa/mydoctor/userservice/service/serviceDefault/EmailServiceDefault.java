@@ -5,6 +5,8 @@ import ma.hariti.asmaa.mydoctor.userservice.service.EmailService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -112,35 +114,74 @@ public class EmailServiceDefault implements EmailService {
     @Override
     public void sendMeetingLinkEmail(String to, String patientName, String doctorName, String date, String time,
             String meetingLink) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
-        message.setTo(to);
-        message.setSubject("Video Consultation Meeting Link - MyDoctor");
-        message.setText("""
-                Hello,
-
-                This is a reminder for your video consultation on MyDoctor.
-
-                --- APPOINTMENT DETAILS ---
-                Patient: %s
-                Doctor: Dr. %s
-                Date: %s
-                Time: %s
-
-                MEETING LINK: %s
-                ---------------------------
-
-                Please ensure you have a stable internet connection and are in a quiet place before joining the call.
-
-                Best regards,
-                The MyDoctor Team
-                """.formatted(patientName, doctorName, date, time, meetingLink));
-
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
         try {
-            mailSender.send(message);
-            log.info("Meeting link email sent successfully to: {}", to);
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(to);
+            helper.setSubject("🗓️ Your Video Consultation - Dr. " + doctorName);
+
+            String htmlContent = """
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <style>
+                            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f7f9; }
+                            .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+                            .header { background: linear-gradient(135deg, #0d6efd 0%%, #0056b3 100%%); padding: 40px 20px; text-align: center; color: #ffffff; }
+                            .header h1 { margin: 0; font-size: 26px; font-weight: 700; }
+                            .content { padding: 40px 35px; }
+                            .welcome { font-size: 20px; color: #1a1a1b; margin-bottom: 20px; font-weight: 600; }
+                            .card { background: #f8fbff; border-radius: 10px; padding: 25px; margin: 25px 0; border: 1px solid #e1e9f0; }
+                            .item { margin-bottom: 15px; font-size: 16px; display: block; }
+                            .label { color: #6c757d; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; display: block; margin-bottom: 4px; }
+                            .value { color: #2c3e50; font-weight: 600; font-size: 17px; }
+                            .cta { text-align: center; margin-top: 40px; }
+                            .btn { background-color: #0d6efd; color: #ffffff !important; padding: 18px 35px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px; display: inline-block; transition: all 0.3s ease; }
+                            .footer { background: #f8f9fa; padding: 25px; text-align: center; color: #adb5bd; font-size: 12px; }
+                            .tips { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; color: #7f8c8d; font-size: 13px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="header">
+                                <h1>MyDoctor Consultation</h1>
+                            </div>
+                            <div class="content">
+                                <div class="welcome">Hello %s,</div>
+                                <p>Your video consultation has been scheduled. Here are the appointment details:</p>
+
+                                <div class="card">
+                                    <span class="item"><span class="label">Doctor</span><span class="value">Dr. %s</span></span>
+                                    <span class="item"><span class="label">Date</span><span class="value">%s</span></span>
+                                    <span class="item"><span class="label">Time</span><span class="value">%s</span></span>
+                                </div>
+
+                                <div class="cta">
+                                    <a href="%s" class="btn">Start Video Consultation</a>
+                                </div>
+
+                                <div class="tips">
+                                    <strong>Important:</strong> Please ensure you have a stable connection and are using a supported browser. We recommend joining 5 minutes early to test your setup.
+                                </div>
+                            </div>
+                            <div class="footer">
+                                &copy; 2026 MyDoctor Inc. All rights reserved.<br>
+                                Ref: APT-%s
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                    """
+                    .formatted(patientName, doctorName, date, time, meetingLink,
+                            java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+
+            helper.setText(htmlContent, true);
+            mailSender.send(mimeMessage);
+            log.info("Premium HTML meeting link email sent to: {}", to);
         } catch (Exception e) {
-            log.error("Failed to send meeting link email to: {}", to, e);
+            log.error("Failed to send premium email", e);
         }
     }
 }

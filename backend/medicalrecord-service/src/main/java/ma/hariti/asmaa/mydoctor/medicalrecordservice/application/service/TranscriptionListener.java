@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.transcribe.TranscribeClient;
 import software.amazon.awssdk.services.transcribe.model.*;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -30,13 +31,21 @@ public class TranscriptionListener {
     private final S3Client s3Client;
     private final MedicalRecordRepository medicalRecordRepository;
     
-    private final String queueUrl = "https://sqs.eu-west-3.amazonaws.com/123456789012/transcription-queue";
-    private final String transcriptBucket = "mydoctor-transcripts";
+    @Value("${aws.sqs.queue-name}")
+    private String queueName;
+
+    @Value("${aws.s3.transcript-bucket}")
+    private String transcriptBucket;
+
+    private String getQueueUrl() {
+        return sqsClient.getQueueUrl(software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest.builder().queueName(queueName).build()).queueUrl();
+    }
 
     @Scheduled(fixedRate = 10000)
     public void listen() {
+        String currentQueueUrl = getQueueUrl();
         ReceiveMessageRequest receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(queueUrl)
+                .queueUrl(currentQueueUrl)
                 .maxNumberOfMessages(5)
                 .build();
 
@@ -62,7 +71,7 @@ public class TranscriptionListener {
                 medicalRecordRepository.save(record);
             });
 
-            sqsClient.deleteMessage(builder -> builder.queueUrl(queueUrl).receiptHandle(message.receiptHandle()));
+            sqsClient.deleteMessage(builder -> builder.queueUrl(getQueueUrl()).receiptHandle(message.receiptHandle()));
         }
     }
 

@@ -1,8 +1,9 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { MedicalRecordService } from '../../core/services/medical-record.service';
+import { AppointmentService } from '../../core/services/appointment.service';
 
 @Component({
   selector: 'app-video-call',
@@ -10,7 +11,7 @@ import { MedicalRecordService } from '../../core/services/medical-record.service
   imports: [CommonModule],
   templateUrl: './video-call.component.html'
 })
-export class VideoCallComponent implements OnInit {
+export class VideoCallComponent implements OnInit, OnDestroy {
   @ViewChild('localVideo') localVideo!: ElementRef<HTMLVideoElement>;
   @ViewChild('remoteVideo') remoteVideo!: ElementRef<HTMLVideoElement>;
 
@@ -27,7 +28,8 @@ export class VideoCallComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
-    private medicalRecordService: MedicalRecordService
+    private medicalRecordService: MedicalRecordService,
+    private appointmentService: AppointmentService
   ) {}
 
   ngOnInit(): void {
@@ -41,6 +43,22 @@ export class VideoCallComponent implements OnInit {
     setTimeout(() => {
         this.isRemoteJoined = true;
     }, 3000);
+  }
+
+  ngOnDestroy(): void {
+    this.releaseCamera();
+  }
+
+  private releaseCamera() {
+    if (this.localVideo?.nativeElement?.srcObject) {
+      const stream = this.localVideo.nativeElement.srcObject as MediaStream;
+      stream.getTracks().forEach(track => {
+        track.stop();
+        console.log(`Track ${track.kind} stopped`);
+      });
+      this.localVideo.nativeElement.srcObject = null;
+    }
+    this.mediaRecorder?.stop();
   }
 
   async startLocalStream() {
@@ -75,22 +93,29 @@ export class VideoCallComponent implements OnInit {
   }
 
   async endCall() {
-    // Stop recorder
-    this.mediaRecorder?.stop();
+    // 1. Stop recorder and upload
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+        this.mediaRecorder.stop();
+    }
     
     // Create File and Upload
     if (this.appointmentId && this.videoChunks.length > 0) {
         const videoBlob = new Blob(this.videoChunks, { type: 'video/webm' });
         const file = new File([videoBlob], `call-${this.appointmentId}.webm`);
         
-        this.medicalRecordService.uploadRecording(this.appointmentId, this.videoChunks.length > 0 ? file : new File([], 'empty')).subscribe({
+        this.medicalRecordService.uploadRecording(this.appointmentId, file).subscribe({
             next: () => console.log('Recording uploaded successfully'),
             error: (err) => console.error('Failed to upload recording', err)
         });
+
+        // 2. Mark appointment as COMPLETED
+        this.appointmentService.completeAppointment(Number(this.appointmentId)).subscribe({
+            next: () => console.log('Appointment marked as COMPLETED'),
+            error: (err) => console.error('Failed to mark appointment as COMPLETED', err)
+        });
     }
 
-    const stream = this.localVideo.nativeElement.srcObject as MediaStream;
-    stream?.getTracks().forEach(track => track.stop());
+    this.releaseCamera();
     window.history.back();
   }
 }

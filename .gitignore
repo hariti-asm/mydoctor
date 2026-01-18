@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### MyDoctor Specific ###
+.env
+node_modules/
+dist/
+*.log

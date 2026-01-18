@@ -18,6 +18,12 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
+import org.springframework.web.client.RestTemplate;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import java.time.Duration;
+import ma.hariti.asmaa.mydoctor.medicalrecordservice.application.dto.AppointmentResponse;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,18 +34,26 @@ public class MedicalRecordApplicationService {
     private final MedicalRecordRepository medicalRecordRepository;
     private final S3Client s3Client;
     private final SqsClient sqsClient;
+    private final RestTemplate restTemplate;
+    private final S3Presigner s3Presigner;
 
     @Value("${aws.s3.bucket}")
     private String bucketName;
+
+    @Value("${aws.s3.transcript-bucket}")
+    private String transcriptBucket;
 
     @Value("${aws.sqs.queue-name}")
     private String queueName;
 
     private String queueUrl;
+    @Value("${services.appointment.url:http://localhost:8082/api/v1/appointments}")
+    private String appointmentServiceUrl;
 
     @PostConstruct
     public void init() {
-        ensureBucketExists();
+        ensureBucketExists(bucketName);
+        ensureBucketExists(transcriptBucket);
         ensureQueueExists();
     }
 
@@ -51,12 +65,12 @@ public class MedicalRecordApplicationService {
         }
     }
 
-    private void ensureBucketExists() {
+    private void ensureBucketExists(String bucket) {
         try {
-            s3Client.headBucket(HeadBucketRequest.builder().bucket(bucketName).build());
+            s3Client.headBucket(HeadBucketRequest.builder().bucket(bucket).build());
         } catch (S3Exception e) {
             if (e.statusCode() == 404) {
-                s3Client.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
+                s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
             } else {
                 throw e;
             }
@@ -65,7 +79,6 @@ public class MedicalRecordApplicationService {
 
     public void processRecording(String appointmentId, MultipartFile file) {
         String s3Key = "recordings/" + appointmentId + ".webm";
-        String recordingUrl = "https://" + bucketName + ".s3.amazonaws.com/" + s3Key;
 
         try {
             // 1. Upload to S3
@@ -82,7 +95,17 @@ public class MedicalRecordApplicationService {
                             .recordDate(java.time.LocalDateTime.now())
                             .build());
             
-            record.setRecordingUrl(recordingUrl);
+            // Fetch appointment details to get patientId
+            try {
+                AppointmentResponse appt = restTemplate.getForObject(appointmentServiceUrl + "/" + appointmentId, AppointmentResponse.class);
+                if (appt != null) {
+                    record.setPatientId(appt.getPatientId());
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to fetch appointment details for linkage: " + e.getMessage());
+            }
+
+            record.setRecordingUrl(s3Key); // Store S3 key instead of full URL
             medicalRecordRepository.save(record);
 
             // 3. Send SQS Message for transcription
@@ -128,14 +151,42 @@ public class MedicalRecordApplicationService {
     }
 
     public List<MedicalRecord> getRecordsByPatientId(Long patientId) {
-        return medicalRecordRepository.findByPatientId(patientId);
+        List<MedicalRecord> records = medicalRecordRepository.findByPatientId(patientId);
+        records.forEach(this::populatePresignedUrls);
+        return records;
     }
 
     public java.util.Optional<MedicalRecord> getRecordByAppointmentId(String appointmentId) {
-        return medicalRecordRepository.findByAppointmentId(appointmentId);
+        return medicalRecordRepository.findByAppointmentId(appointmentId)
+                .map(record -> {
+                    populatePresignedUrls(record);
+                    return record;
+                });
     }
 
     public List<MedicalRecord> getAllRecords() {
-        return medicalRecordRepository.findAll();
+        List<MedicalRecord> records = medicalRecordRepository.findAll();
+        records.forEach(this::populatePresignedUrls);
+        return records;
+    }
+
+    private void populatePresignedUrls(MedicalRecord record) {
+        if (record.getRecordingUrl() != null && !record.getRecordingUrl().startsWith("http")) {
+            record.setRecordingUrl(generatePresignedUrl(record.getRecordingUrl()));
+        }
+    }
+
+    private String generatePresignedUrl(String s3Key) {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(s3Key)
+                .build();
+
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofHours(1))
+                .getObjectRequest(getObjectRequest)
+                .build();
+
+        return s3Presigner.presignGetObject(presignRequest).url().toString();
     }
 }

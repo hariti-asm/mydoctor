@@ -17,7 +17,11 @@ public class AppointmentApplicationService {
     private final AppointmentRepository appointmentRepository;
     private final RestTemplate restTemplate;
 
-    private static final String USER_SERVICE_URL = "http://localhost:8081/api/v1";
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url:http://localhost:4200}")
+    private String frontendUrl;
+
+    @org.springframework.beans.factory.annotation.Value("${services.user.url:http://localhost:8081/api/v1}")
+    private String userServiceUrl;
 
     public Appointment createAppointment(Appointment appointment) {
         appointment.setStatus("PENDING");
@@ -37,11 +41,11 @@ public class AppointmentApplicationService {
 
     private void notifyUsers(Appointment appointment) {
         UserProfileResponse patient = restTemplate.getForObject(
-                USER_SERVICE_URL + "/users/" + appointment.getPatientId(),
+                userServiceUrl + "/users/" + appointment.getPatientId(),
                 UserProfileResponse.class);
 
         UserProfileResponse doctor = restTemplate.getForObject(
-                USER_SERVICE_URL + "/users/" + appointment.getDoctorId(),
+                userServiceUrl + "/users/" + appointment.getDoctorId(),
                 UserProfileResponse.class);
 
         if (patient == null || doctor == null)
@@ -49,7 +53,7 @@ public class AppointmentApplicationService {
 
         String date = appointment.getStartDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String time = appointment.getStartDateTime().format(DateTimeFormatter.ofPattern("HH:mm"));
-        String meetingLink = "http://localhost:4200/portal/video-call/" + appointment.getId();
+        String meetingLink = frontendUrl + "/portal/video-call/" + appointment.getId();
 
         AppointmentNotificationRequest patientNotify = AppointmentNotificationRequest.builder()
                 .to(patient.getEmail())
@@ -72,9 +76,9 @@ public class AppointmentApplicationService {
                 .build();
 
         // Send to patient
-        restTemplate.postForEntity(USER_SERVICE_URL + "/notifications/appointment", patientNotify, Void.class);
+        restTemplate.postForEntity(userServiceUrl + "/notifications/appointment", patientNotify, Void.class);
         // Send to doctor
-        restTemplate.postForEntity(USER_SERVICE_URL + "/notifications/appointment", doctorNotify, Void.class);
+        restTemplate.postForEntity(userServiceUrl + "/notifications/appointment", doctorNotify, Void.class);
     }
 
     public List<Appointment> getAppointmentsByDoctor(Long doctorId) {
@@ -85,10 +89,22 @@ public class AppointmentApplicationService {
         return appointmentRepository.findByPatientId(patientId);
     }
 
+    public Appointment getAppointmentById(Long id) {
+        return appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+    }
+
     public Appointment confirmAppointment(Long id) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
         appointment.confirm();
+        return appointmentRepository.save(appointment);
+    }
+
+    public Appointment completeAppointment(Long id) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        appointment.complete();
         return appointmentRepository.save(appointment);
     }
 

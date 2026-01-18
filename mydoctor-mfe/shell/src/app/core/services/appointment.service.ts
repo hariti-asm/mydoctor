@@ -28,6 +28,10 @@ export class AppointmentService {
     return this.http.put<void>(`${this.apiUrl}/${id}/status`, {}, { params: { status } });
   }
 
+  completeAppointment(id: number): Observable<Appointment> {
+    return this.http.put<Appointment>(`${this.apiUrl}/${id}/complete`, {});
+  }
+
   getAvailableSlots(doctorId: number, date: string): Observable<string[]> {
       return this.http.get<string[]>(`${this.apiUrl}/available-slots`, { params: { doctorId: doctorId.toString(), date } });
   }

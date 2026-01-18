@@ -23,6 +23,9 @@ public class SecurityConfiguration {
         private final JwtAuthenticationFilter jwtAuthFilter;
         private final AuthenticationProvider authenticationProvider;
 
+        @org.springframework.beans.factory.annotation.Value("${app.frontend.url:http://localhost:4200}")
+        private String frontendUrl;
+
         public SecurityConfiguration(JwtAuthenticationFilter jwtAuthFilter,
                         AuthenticationProvider authenticationProvider) {
                 this.jwtAuthFilter = jwtAuthFilter;
@@ -60,7 +63,7 @@ public class SecurityConfiguration {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
+                configuration.setAllowedOrigins(Arrays.asList(frontendUrl));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token"));
                 configuration.setExposedHeaders(Arrays.asList("X-Auth-Token"));

@@ -34,4 +34,8 @@ public class Appointment {
     public void confirm() {
         this.status = "CONFIRMED";
     }
+
+    public void complete() {
+        this.status = "COMPLETED";
+    }
 }

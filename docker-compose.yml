@@ -1,0 +1,107 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: mydoctor-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ""
+    volumes:
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres-data:/var/lib/postgresql/data
+
+  discovery-server:
+    build: ./backend/discovery-server
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    environment:
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+
+  api-gateway:
+    build: ./backend/api-gateway
+    container_name: api-gateway
+    ports:
+      - "9000:9000"
+    depends_on:
+      - discovery-server
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - APP_FRONTEND_URL=http://localhost:4200
+
+  user-service:
+    build: ./backend/user-service
+    container_name: user-service
+    depends_on:
+      - postgres
+      - discovery-server
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mydoctor_user_service
+      - SPRING_DATASOURCE_PASSWORD=""
+      - APP_FRONTEND_URL=http://localhost:4200
+
+  doctor-service:
+    build: ./backend/doctor-service
+    container_name: doctor-service
+    depends_on:
+      - postgres
+      - discovery-server
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mydoctor_doctor_service
+      - SPRING_DATASOURCE_PASSWORD=""
+
+  appointment-service:
+    build: ./backend/appointment-service
+    container_name: appointment-service
+    depends_on:
+      - postgres
+      - discovery-server
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mydoctor_appointment_service
+      - SPRING_DATASOURCE_PASSWORD=""
+      - SERVICES_USER_URL=http://user-service:8081/api/v1
+      - APP_FRONTEND_URL=http://localhost:4200
+
+  patient-service:
+    build: ./backend/patient-service
+    container_name: patient-service
+    depends_on:
+      - postgres
+      - discovery-server
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mydoctor_patient_service
+      - SPRING_DATASOURCE_PASSWORD=""
+
+  medicalrecord-service:
+    build: ./backend/medicalrecord-service
+    container_name: medicalrecord-service
+    depends_on:
+      - postgres
+      - discovery-server
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mydoctor_medicalrecord_service
+      - SPRING_DATASOURCE_PASSWORD=""
+      - SERVICES_APPOINTMENT_URL=http://appointment-service:8082/api/v1/appointments
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_REGION=eu-west-3
+
+  shell:
+    build: ./mydoctor-mfe/shell
+    container_name: mydoctor-shell
+    ports:
+      - "4200:80"
+    depends_on:
+      - api-gateway
+
+volumes:
+  postgres-data:

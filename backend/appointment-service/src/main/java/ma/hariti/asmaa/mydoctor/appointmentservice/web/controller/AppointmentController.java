@@ -18,6 +18,11 @@ public class AppointmentController {
         return ResponseEntity.ok(appointmentService.createAppointment(appointment));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Appointment> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(appointmentService.getAppointmentById(id));
+    }
+
     @GetMapping("/doctor/{doctorId}")
     public ResponseEntity<List<Appointment>> getByDoctor(@PathVariable Long doctorId) {
         return ResponseEntity.ok(appointmentService.getAppointmentsByDoctor(doctorId));
@@ -31,6 +36,11 @@ public class AppointmentController {
     @PutMapping("/{id}/confirm")
     public ResponseEntity<Appointment> confirm(@PathVariable Long id) {
         return ResponseEntity.ok(appointmentService.confirmAppointment(id));
+    }
+
+    @PutMapping("/{id}/complete")
+    public ResponseEntity<Appointment> complete(@PathVariable Long id) {
+        return ResponseEntity.ok(appointmentService.completeAppointment(id));
     }
 
     @PutMapping("/{id}/cancel")
