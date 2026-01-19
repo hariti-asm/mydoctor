@@ -4,8 +4,8 @@ metadata:
   name: mydoctor-config
 data:
   EUREKA_URL: "http://discovery-server:8761/eureka/"
-  FRONTEND_URL: "http://REPLACE_WITH_FRONTEND_LB_IP" # Update this after deployment
-  API_URL: "http://REPLACE_WITH_API_GATEWAY_LB_IP:9000" # Update this after deployment
+  FRONTEND_URL: "http://k8s-default-shellfro-6b34fd3ce4-7d9598dc4bc57595.elb.us-east-1.amazonaws.com"
+  API_URL: "http://k8s-default-apigatew-26bbc42aa3-c7b903031d8f6a3a.elb.us-east-1.amazonaws.com:9000"
   DB_HOST: "postgres"
   AWS_REGION: "us-east-1"
   S3_BUCKET: "mydoctor-recordings-prod"
@@ -19,7 +19,7 @@ metadata:
 data:
   config.json: |
     {
-      "apiUrl": "http://REPLACE_WITH_API_GATEWAY_LB_IP:9000"
+      "apiUrl": "http://k8s-default-apigatew-26bbc42aa3-c7b903031d8f6a3a.elb.us-east-1.amazonaws.com:9000"
     }
 ---
 apiVersion: v1
@@ -28,9 +28,9 @@ metadata:
   name: mydoctor-secrets
 type: Opaque
 stringData:
-  AWS_ACCESS_KEY: "YOUR_AWS_ACCESS_KEY"
-  AWS_SECRET_KEY: "YOUR_AWS_SECRET_KEY"
-  DB_PASSWORD: "YOUR_DB_PASSWORD"
-  MAIL_USERNAME: "YOUR_MAIL_USERNAME"
-  MAIL_PASSWORD: "YOUR_MAIL_PASSWORD"
-  JWT_SECRET_KEY: "YOUR_JWT_SECRET_KEY"
+  AWS_ACCESS_KEY: "AKIAV6KYCYNJXOMDPN5Q"
+  AWS_SECRET_KEY: "QMoUFGWB2kM22uIEaqzVas2Tkls2F1KBsMiVRtVW"
+  DB_PASSWORD: ""
+  MAIL_USERNAME: "haritiasmae@gmail.com"
+  MAIL_PASSWORD: "jhzj giqv iqnn pzrq"
+  JWT_SECRET_KEY: "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970"
