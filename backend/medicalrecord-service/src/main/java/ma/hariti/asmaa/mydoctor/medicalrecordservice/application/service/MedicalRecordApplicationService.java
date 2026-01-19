@@ -52,9 +52,14 @@ public class MedicalRecordApplicationService {
 
     @PostConstruct
     public void init() {
-        ensureBucketExists(bucketName);
-        ensureBucketExists(transcriptBucket);
-        ensureQueueExists();
+        try {
+            ensureBucketExists(bucketName);
+            ensureBucketExists(transcriptBucket);
+            ensureQueueExists();
+            System.out.println("AWS infrastructure initialized successfully.");
+        } catch (Exception e) {
+            System.err.println("Warning: AWS infrastructure initialization failed. S3/SQS features may not work: " + e.getMessage());
+        }
     }
 
     private void ensureQueueExists() {
