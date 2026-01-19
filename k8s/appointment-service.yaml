@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appointment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: appointment-service
+  template:
+    metadata:
+      labels:
+        app: appointment-service
+    spec:
+      containers:
+        - name: appointment-service
+          image: REPLACE_WITH_YOUR_ACCOUNT.dkr.ecr.eu-west-3.amazonaws.com/mydoctor-appointment-service:latest
+          ports:
+            - containerPort: 8082
+          env:
+            - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: mydoctor-config
+                  key: EUREKA_URL
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:5432/mydoctor_appointment_service"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mydoctor-secrets
+                  key: DB_PASSWORD
+            - name: APP_FRONTEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: mydoctor-config
+                  key: FRONTEND_URL
+            - name: SERVICES_USER_URL
+              value: "http://user-service:8081/api/v1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: appointment-service
+spec:
+  ports:
+    - port: 8082
+  selector:
+    app: appointment-service

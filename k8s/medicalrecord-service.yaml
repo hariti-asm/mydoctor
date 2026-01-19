@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medicalrecord-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: medicalrecord-service
+  template:
+    metadata:
+      labels:
+        app: medicalrecord-service
+    spec:
+      containers:
+        - name: medicalrecord-service
+          image: REPLACE_WITH_YOUR_ACCOUNT.dkr.ecr.eu-west-3.amazonaws.com/mydoctor-medicalrecord-service:latest
+          ports:
+            - containerPort: 8085
+          env:
+            - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: mydoctor-config
+                  key: EUREKA_URL
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:5432/mydoctor_medicalrecord_service"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mydoctor-secrets
+                  key: DB_PASSWORD
+            - name: AWS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mydoctor-secrets
+                  key: AWS_ACCESS_KEY
+            - name: AWS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mydoctor-secrets
+                  key: AWS_SECRET_KEY
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: mydoctor-config
+                  key: AWS_REGION
+            - name: S3_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: mydoctor-config
+                  key: S3_BUCKET
+            - name: S3_TRANSCRIPT_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: mydoctor-config
+                  key: S3_TRANSCRIPT_BUCKET
+            - name: SQS_QUEUE
+              valueFrom:
+                configMapKeyRef:
+                  name: mydoctor-config
+                  key: SQS_QUEUE
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: medicalrecord-service
+spec:
+  ports:
+    - port: 8085
+  selector:
+    app: medicalrecord-service

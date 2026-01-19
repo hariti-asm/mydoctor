@@ -4,13 +4,13 @@ metadata:
   name: mydoctor-config
 data:
   EUREKA_URL: "http://discovery-server:8761/eureka/"
-  FRONTEND_URL: "http://localhost:4200" # Update this to your LoadBalancer IP later
-  API_URL: "http://localhost:9000" # Update this to your LoadBalancer IP later
+  FRONTEND_URL: "http://REPLACE_WITH_FRONTEND_LB_IP" # Update this after deployment
+  API_URL: "http://REPLACE_WITH_API_GATEWAY_LB_IP:9000" # Update this after deployment
   DB_HOST: "postgres"
   AWS_REGION: "us-east-1"
-  S3_BUCKET: "mydoctor-recordings"
-  S3_TRANSCRIPT_BUCKET: "mydoctor-transcripts"
-  SQS_QUEUE: "transcription-queue"
+  S3_BUCKET: "mydoctor-recordings-prod"
+  S3_TRANSCRIPT_BUCKET: "mydoctor-transcripts-prod"
+  SQS_QUEUE: "transcription-queue-prod"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -19,7 +19,7 @@ metadata:
 data:
   config.json: |
     {
-      "apiUrl": "http://api-gateway:9000"
+      "apiUrl": "http://REPLACE_WITH_API_GATEWAY_LB_IP:9000"
     }
 ---
 apiVersion: v1
@@ -28,9 +28,9 @@ metadata:
   name: mydoctor-secrets
 type: Opaque
 stringData:
-  AWS_ACCESS_KEY: ""
-  AWS_SECRET_KEY: ""
-  DB_PASSWORD: ""
-  MAIL_USERNAME: ""
-  MAIL_PASSWORD: ""
-  JWT_SECRET_KEY: ""
+  AWS_ACCESS_KEY: "YOUR_AWS_ACCESS_KEY"
+  AWS_SECRET_KEY: "YOUR_AWS_SECRET_KEY"
+  DB_PASSWORD: "YOUR_DB_PASSWORD"
+  MAIL_USERNAME: "YOUR_MAIL_USERNAME"
+  MAIL_PASSWORD: "YOUR_MAIL_PASSWORD"
+  JWT_SECRET_KEY: "YOUR_JWT_SECRET_KEY"
