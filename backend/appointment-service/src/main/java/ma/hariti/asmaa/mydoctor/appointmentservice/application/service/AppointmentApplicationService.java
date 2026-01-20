@@ -17,7 +17,7 @@ public class AppointmentApplicationService {
     private final AppointmentRepository appointmentRepository;
     private final RestTemplate restTemplate;
 
-    @org.springframework.beans.factory.annotation.Value("${app.frontend.url:http://localhost:4200}")
+    @org.springframework.beans.factory.annotation.Value("${APP_FRONTEND_URL:${app.frontend.url:http://localhost:4200}}")
     private String frontendUrl;
 
     @org.springframework.beans.factory.annotation.Value("${services.user.url:http://localhost:8081/api/v1}")
@@ -53,7 +53,9 @@ public class AppointmentApplicationService {
 
         String date = appointment.getStartDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String time = appointment.getStartDateTime().format(DateTimeFormatter.ofPattern("HH:mm"));
-        String meetingLink = frontendUrl + "/portal/video-call/" + appointment.getId();
+
+        String baseUrl = frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl;
+        String meetingLink = baseUrl + "/portal/video-call/" + appointment.getId();
 
         AppointmentNotificationRequest patientNotify = AppointmentNotificationRequest.builder()
                 .to(patient.getEmail())
