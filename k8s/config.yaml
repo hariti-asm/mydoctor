@@ -4,8 +4,8 @@ metadata:
   name: mydoctor-config
 data:
   EUREKA_URL: "http://discovery-server:8761/eureka/"
-  FRONTEND_URL: "http://a5bf813caec504c59af25ff1ba914a67-1926758161.eu-west-3.elb.amazonaws.com"
-  API_URL: "http://a428a3f1395e2444db3d3d1e2e2e1802-215498667.eu-west-3.elb.amazonaws.com"
+  FRONTEND_URL: "http://a6da61e1b5ae14789ac19ae750caa5ff-1349906051.eu-west-3.elb.amazonaws.com"
+  API_URL: "http://a27e9e956a78240589a9b19fa98b03f6-1917442781.eu-west-3.elb.amazonaws.com"
   DB_HOST: "postgres"
   AWS_REGION: "eu-west-3"
   EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
@@ -20,7 +20,7 @@ metadata:
 data:
   config.json: |
     {
-      "apiUrl": "http://a428a3f1395e2444db3d3d1e2e2e1802-215498667.eu-west-3.elb.amazonaws.com"
+      "apiUrl": "http://a27e9e956a78240589a9b19fa98b03f6-1917442781.eu-west-3.elb.amazonaws.com"
     }
 ---
 apiVersion: v1

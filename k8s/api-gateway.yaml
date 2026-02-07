@@ -18,6 +18,12 @@ spec:
           ports:
             - containerPort: 9000
           env:
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY
+              value: "TRACE"
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_HTTP_SERVER_REACTIVE
+              value: "DEBUG"
+            - name: LOGGING_LEVEL_WEB
+              value: "DEBUG"
             - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
               valueFrom:
                 configMapKeyRef:
