@@ -18,8 +18,8 @@ public class Appointment {
     private Long patientId;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
-    private String status; // PENDING, CONFIRMED, CANCELLED
-    private String appointmentType; // IN_PERSON, VIDEO
+    private String status;
+    private String appointmentType;
     private String reason;
     private String notes;
 

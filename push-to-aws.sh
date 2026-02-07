@@ -6,16 +6,20 @@ ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 PREFIX="mydoctor"
 
 # Services to push
-SERVICES=(
-  "discovery-server"
-  "api-gateway"
-  "user-service"
-  "doctor-service"
-  "appointment-service"
-  "patient-service"
-  "medicalrecord-service"
-  "shell"
-)
+if [ $# -gt 0 ]; then
+  SERVICES=("$@")
+else
+  SERVICES=(
+    "discovery-server"
+    "api-gateway"
+    "user-service"
+    "doctor-service"
+    "appointment-service"
+    "patient-service"
+    "medicalrecord-service"
+    "shell"
+  )
+fi
 
 echo "🚀 Starting MyDoctor AWS Deployment Flow..."
 
@@ -43,7 +47,7 @@ do
   fi
 
   echo "🔨 Building image from $CONTEXT..."
-  docker build -t $REPO_NAME $CONTEXT
+  docker build --platform linux/amd64 -t $REPO_NAME $CONTEXT
 
   # Tag and Push
   echo "🏷️ Tagging and Pushing $IMAGE_TAG..."

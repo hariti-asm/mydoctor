@@ -4,9 +4,7 @@ import lombok.RequiredArgsConstructor;
 import ma.hariti.asmaa.mydoctor.appointmentservice.application.dto.AppointmentNotificationRequest;
 import ma.hariti.asmaa.mydoctor.appointmentservice.application.dto.UserProfileResponse;
 import ma.hariti.asmaa.mydoctor.appointmentservice.domain.model.Appointment;
-import ma.hariti.asmaa.mydoctor.appointmentservice.domain.ports.AppointmentRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -14,8 +12,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AppointmentApplicationService {
-    private final AppointmentRepository appointmentRepository;
-    private final RestTemplate restTemplate;
+    private final ma.hariti.asmaa.mydoctor.appointmentservice.domain.ports.AppointmentRepository appointmentRepository;
+    private final org.springframework.web.client.RestTemplate restTemplate;
+    private final org.springframework.kafka.core.KafkaTemplate<String, AppointmentNotificationRequest> kafkaTemplate;
 
     @org.springframework.beans.factory.annotation.Value("${APP_FRONTEND_URL:${app.frontend.url:http://localhost:4200}}")
     private String frontendUrl;
@@ -28,12 +27,13 @@ public class AppointmentApplicationService {
         Appointment saved = appointmentRepository.save(appointment);
 
         if ("VIDEO".equals(saved.getAppointmentType())) {
-            try {
-                notifyUsers(saved);
-            } catch (Exception e) {
-                // Log and continue - don't fail appointment creation if notification fails
-                System.err.println("Failed to send appointment notifications: " + e.getMessage());
-            }
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    notifyUsers(saved);
+                } catch (Exception e) {
+                    System.err.println("Failed to send appointment notifications: " + e.getMessage());
+                }
+            });
         }
 
         return saved;
@@ -77,10 +77,9 @@ public class AppointmentApplicationService {
                 .meetingLink(meetingLink)
                 .build();
 
-        // Send to patient
-        restTemplate.postForEntity(userServiceUrl + "/notifications/appointment", patientNotify, Void.class);
-        // Send to doctor
-        restTemplate.postForEntity(userServiceUrl + "/notifications/appointment", doctorNotify, Void.class);
+        // Send to Kafka instead of REST
+        kafkaTemplate.send("appointment-notifications", patientNotify);
+        kafkaTemplate.send("appointment-notifications", doctorNotify);
     }
 
     public List<Appointment> getAppointmentsByDoctor(Long doctorId) {

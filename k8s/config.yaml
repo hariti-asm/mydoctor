@@ -4,10 +4,11 @@ metadata:
   name: mydoctor-config
 data:
   EUREKA_URL: "http://discovery-server:8761/eureka/"
-  FRONTEND_URL: "http://k8s-default-shellfro-6b34fd3ce4-7d9598dc4bc57595.elb.us-east-1.amazonaws.com"
-  API_URL: "http://k8s-default-apigatew-26bbc42aa3-c7b903031d8f6a3a.elb.us-east-1.amazonaws.com:9000"
+  FRONTEND_URL: "http://a5bf813caec504c59af25ff1ba914a67-1926758161.eu-west-3.elb.amazonaws.com"
+  API_URL: "http://a428a3f1395e2444db3d3d1e2e2e1802-215498667.eu-west-3.elb.amazonaws.com"
   DB_HOST: "postgres"
-  AWS_REGION: "us-east-1"
+  AWS_REGION: "eu-west-3"
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
   S3_BUCKET: "mydoctor-recordings-prod"
   S3_TRANSCRIPT_BUCKET: "mydoctor-transcripts-prod"
   SQS_QUEUE: "transcription-queue-prod"
@@ -19,7 +20,7 @@ metadata:
 data:
   config.json: |
     {
-      "apiUrl": "http://k8s-default-apigatew-26bbc42aa3-c7b903031d8f6a3a.elb.us-east-1.amazonaws.com:9000"
+      "apiUrl": "http://a428a3f1395e2444db3d3d1e2e2e1802-215498667.eu-west-3.elb.amazonaws.com"
     }
 ---
 apiVersion: v1
@@ -30,7 +31,7 @@ type: Opaque
 stringData:
   AWS_ACCESS_KEY: "AKIAV6KYCYNJXOMDPN5Q"
   AWS_SECRET_KEY: "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"
-  DB_PASSWORD: ""
+  DB_PASSWORD: "postgres"
   MAIL_USERNAME: "haritiasmae@gmail.com"
   MAIL_PASSWORD: "jhzj giqv iqnn pzrq"
   JWT_SECRET_KEY: "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970"

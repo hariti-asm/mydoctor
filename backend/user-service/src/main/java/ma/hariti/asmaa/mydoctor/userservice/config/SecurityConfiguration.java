@@ -45,6 +45,7 @@ public class SecurityConfiguration {
                                                                 "/api/v1/auth/refresh-token",
                                                                 "/api/v1/files/**",
                                                                 "/api/v1/users/**",
+                                                                "/api/v1/doctors/**",
                                                                 "/api/v1/notifications/**",
                                                                 "/error")
                                                 .permitAll()

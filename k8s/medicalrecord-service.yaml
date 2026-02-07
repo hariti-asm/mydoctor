@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: medicalrecord-service
-          image: REPLACE_WITH_YOUR_ACCOUNT.dkr.ecr.eu-west-3.amazonaws.com/mydoctor-medicalrecord-service:latest
+          image: 408743494483.dkr.ecr.eu-west-3.amazonaws.com/mydoctor-medicalrecord-service:latest
           ports:
             - containerPort: 8085
           env:
@@ -23,6 +23,11 @@ spec:
                 configMapKeyRef:
                   name: mydoctor-config
                   key: EUREKA_URL
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: mydoctor-config
+                  key: EUREKA_INSTANCE_PREFER_IP_ADDRESS
             - name: SPRING_DATASOURCE_URL
               value: "jdbc:postgresql://postgres:5432/mydoctor_medicalrecord_service"
             - name: SPRING_DATASOURCE_PASSWORD
@@ -60,6 +65,11 @@ spec:
                 configMapKeyRef:
                   name: mydoctor-config
                   key: SQS_QUEUE
+            - name: APP_FRONTEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: mydoctor-config
+                  key: FRONTEND_URL
 ---
 apiVersion: v1
 kind: Service

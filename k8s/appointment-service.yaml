@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: appointment-service
-          image: 408743494483.dkr.ecr.us-east-1.amazonaws.com/mydoctor-appointment-service:latest
+          image: 408743494483.dkr.ecr.eu-west-3.amazonaws.com/mydoctor-appointment-service:latest
           ports:
             - containerPort: 8082
           env:
@@ -23,6 +23,11 @@ spec:
                 configMapKeyRef:
                   name: mydoctor-config
                   key: EUREKA_URL
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS 
+              valueFrom: 
+                configMapKeyRef: 
+                  name: mydoctor-config 
+                  key: EUREKA_INSTANCE_PREFER_IP_ADDRESS
             - name: SPRING_DATASOURCE_URL
               value: "jdbc:postgresql://postgres:5432/mydoctor_appointment_service"
             - name: SPRING_DATASOURCE_PASSWORD

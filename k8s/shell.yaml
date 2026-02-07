@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: shell-frontend
-          image: REPLACE_WITH_YOUR_ACCOUNT.dkr.ecr.eu-west-3.amazonaws.com/mydoctor-shell:latest
+          image: 408743494483.dkr.ecr.eu-west-3.amazonaws.com/mydoctor-shell:latest
           ports:
             - containerPort: 80
           volumeMounts:

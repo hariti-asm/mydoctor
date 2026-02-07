@@ -177,9 +177,11 @@ public class AuthServiceDefault implements AuthService {
             boolean isFirstUser = userRepository.count() == 0;
 
             if (!isFirstUser) {
-                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                if (authentication == null || !authentication.isAuthenticated()) {
-                    throw new IllegalStateException("No authenticated user found");
+                if (request.getRole() == Role.ADMIN) {
+                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                    if (authentication == null || !authentication.isAuthenticated()) {
+                        throw new IllegalStateException("Only authenticated admins can create new admins");
+                    }
                 }
             } else {
                 request.setRole(Role.ADMIN);

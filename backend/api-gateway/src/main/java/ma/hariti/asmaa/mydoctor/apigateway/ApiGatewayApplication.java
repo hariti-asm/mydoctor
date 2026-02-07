@@ -15,10 +15,15 @@ public class ApiGatewayApplication {
   @org.springframework.context.annotation.Bean
   public org.springframework.web.cors.reactive.CorsWebFilter corsWebFilter() {
     org.springframework.web.cors.CorsConfiguration corsConfig = new org.springframework.web.cors.CorsConfiguration();
-    corsConfig.setAllowedOrigins(java.util.Collections.singletonList("http://localhost:4200"));
+    corsConfig.setAllowedOrigins(java.util.Arrays.asList(
+        "http://localhost:4200",
+        "http://a5bf813caec504c59af25ff1ba914a67-1926758161.eu-west-3.elb.amazonaws.com"
+    ));
     corsConfig.setMaxAge(3600L);
-    corsConfig.addAllowedMethod("*");
-    corsConfig.addAllowedHeader("*");
+    corsConfig.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+    corsConfig.setAllowedHeaders(java.util.Arrays.asList("*"));
+    corsConfig.setAllowCredentials(true);
+    corsConfig.addExposedHeader("Authorization");
 
     org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", corsConfig);

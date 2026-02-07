@@ -1,3 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-sql
+data:
+  init.sql: |
+    CREATE DATABASE mydoctor_user_service;
+    CREATE DATABASE mydoctor_appointment_service;
+    CREATE DATABASE mydoctor_patient_service;
+    CREATE DATABASE mydoctor_medicalrecord_service;
+    CREATE DATABASE mydoctor_doctor_service;
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,9 +31,16 @@ spec:
             - containerPort: 5432
           env:
             - name: POSTGRES_PASSWORD
-              value: ""
+              value: "postgres"
             - name: POSTGRES_USER
               value: postgres
+          volumeMounts:
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: init-sql
+          configMap:
+            name: postgres-init-sql
 ---
 apiVersion: v1
 kind: Service
