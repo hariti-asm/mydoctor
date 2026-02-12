@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: 408743494483.dkr.ecr.eu-west-3.amazonaws.com/mydoctor-api-gateway:latest
+          image: 408743494483.dkr.ecr.us-east-1.amazonaws.com/mydoctor-api-gateway:latest
           ports:
             - containerPort: 9000
           env:

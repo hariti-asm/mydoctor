@@ -5,6 +5,9 @@
           <p class="text-zinc-500 font-medium">Initializing Video Consultation...</p>
       </div>
   </div>
+  <div *ngIf="mediaUnavailable" class="absolute top-24 left-1/2 -translate-x-1/2 z-50 bg-yellow-500/90 text-black px-6 py-3 rounded-xl text-sm font-bold shadow-xl max-w-md text-center">
+      ⚠️ Camera/Microphone unavailable. This page must be served over <strong>HTTPS</strong> or <strong>localhost</strong> for video calls to work.
+  </div>
   <div *ngIf="userEmail" class="flex-1 relative flex items-center justify-center p-4">
     <!-- Remote Video (Main) -->
     <div class="w-full h-full bg-zinc-900 rounded-3xl overflow-hidden shadow-2xl relative border border-zinc-800">

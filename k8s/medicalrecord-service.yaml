@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: medicalrecord-service
-          image: 408743494483.dkr.ecr.eu-west-3.amazonaws.com/mydoctor-medicalrecord-service:latest
+          image: 408743494483.dkr.ecr.us-east-1.amazonaws.com/mydoctor-medicalrecord-service:latest
           ports:
             - containerPort: 8085
           env:

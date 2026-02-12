@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -13,7 +13,7 @@ import { Subscription, Observable, firstValueFrom as firstValueFromRxjs, filter,
   imports: [CommonModule],
   templateUrl: './video-call.component.html'
 })
-export class VideoCallComponent implements OnInit, OnDestroy {
+export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('localVideo') localVideo!: ElementRef<HTMLVideoElement>;
   @ViewChild('remoteVideo') remoteVideo!: ElementRef<HTMLVideoElement>;
 
@@ -23,12 +23,15 @@ export class VideoCallComponent implements OnInit, OnDestroy {
   isMuted = false;
   isVideoOff = false;
   isRemoteJoined = false;
+  mediaUnavailable = false;
 
   private peerConnection?: RTCPeerConnection;
   private localStream?: MediaStream;
   private signalingSubscription?: Subscription;
   private mediaRecorder?: MediaRecorder;
   private videoChunks: Blob[] = [];
+  private viewReady = false;
+  private profileReady = false;
 
   private readonly rtcConfig: RTCConfiguration = {
     iceServers: [
@@ -46,39 +49,53 @@ export class VideoCallComponent implements OnInit, OnDestroy {
     private signalingService: SignalingService
   ) {}
 
-  async ngOnInit() {
+  ngOnInit() {
     this.appointmentId = this.route.snapshot.paramMap.get('id');
-    
+
     this.authService.userProfile$.subscribe(profile => {
       if (profile) {
         this.isDoctor = profile.role === 'DOCTOR';
         this.userEmail = profile.email;
-        if (this.appointmentId) {
-          this.initCall();
-        }
+        this.profileReady = true;
+        this.tryInitCall();
       }
     });
+  }
+
+  ngAfterViewInit() {
+    this.viewReady = true;
+    this.tryInitCall();
   }
 
   ngOnDestroy(): void {
     this.cleanup();
   }
 
+  /**
+   * Only start the call once BOTH the view is ready (@ViewChild available)
+   * AND the user profile has loaded.
+   */
+  private tryInitCall() {
+    if (this.viewReady && this.profileReady && this.appointmentId) {
+      this.initCall();
+    }
+  }
+
   private async initCall() {
     if (!this.appointmentId) return;
 
-    // Start local stream first to ensure camera is ready
+    // Start local stream — view is guaranteed ready so localVideo element exists
     await this.startLocalStream();
-    
-    // Connect to signaling
+
+    // Connect to signaling server
     this.signalingService.connect(this.appointmentId);
-    
+
     // Listen for messages
     this.signalingSubscription = this.signalingService.onMessage().subscribe(msg => {
       this.handleSignalingMessage(msg);
     });
 
-    // Wait for signaling to be connected before announcing presence
+    // Wait for signaling connection to be established
     console.log('Waiting for signaling connection...');
     await firstValueFromRxjs(
       this.signalingService.connected$.pipe(
@@ -93,7 +110,7 @@ export class VideoCallComponent implements OnInit, OnDestroy {
     // Send join message to announce presence
     this.signalingService.sendSignal({
       type: 'join',
-      data: {},
+      data: { role: this.isDoctor ? 'DOCTOR' : 'PATIENT' },
       sender: this.userEmail,
       appointmentId: this.appointmentId
     });
@@ -129,7 +146,7 @@ export class VideoCallComponent implements OnInit, OnDestroy {
         });
       }
     };
-    
+
     this.peerConnection.onconnectionstatechange = () => {
       console.log('Connection state:', this.peerConnection?.connectionState);
       if (this.peerConnection?.connectionState === 'connected') {
@@ -141,6 +158,7 @@ export class VideoCallComponent implements OnInit, OnDestroy {
   private async initiateCall() {
     if (!this.peerConnection || !this.appointmentId) return;
 
+    console.log('Creating offer...');
     const offer = await this.peerConnection.createOffer();
     await this.peerConnection.setLocalDescription(offer);
 
@@ -154,6 +172,8 @@ export class VideoCallComponent implements OnInit, OnDestroy {
 
   private async handleSignalingMessage(msg: WebRTCMessage) {
     if (msg.sender === this.userEmail) return; // Ignore own messages
+
+    console.log('Received signaling message:', msg.type, 'from:', msg.sender);
 
     switch (msg.type) {
       case 'join':
@@ -171,27 +191,24 @@ export class VideoCallComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * When someone joins, the DOCTOR always creates the offer.
+   * The patient does NOT send a join back — that would create an infinite loop.
+   */
   private handleJoin(msg: WebRTCMessage) {
-    console.log('Received join message from:', msg.sender);
+    console.log('Participant joined:', msg.sender, 'role:', msg.data?.role);
     if (this.isDoctor) {
-      // If I'm the doctor, I initiate the call when someone joins
-      console.log('I am the doctor, initiating call...');
+      // Doctor creates the offer when someone (patient) joins
+      console.log('I am the doctor, creating offer for the patient...');
       this.initiateCall();
-    } else {
-      // If I'm the patient, I send a join message back so the doctor knows I'm here
-      console.log('I am the patient, announcing presence...');
-      this.signalingService.sendSignal({
-        type: 'join',
-        data: {},
-        sender: this.userEmail,
-        appointmentId: this.appointmentId!
-      });
     }
+    // Patient does nothing here — they wait for the offer from the doctor.
   }
 
   private async handleOffer(offer: RTCSessionDescriptionInit) {
     if (!this.peerConnection || !this.appointmentId) return;
 
+    console.log('Received offer, creating answer...');
     await this.peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
     const answer = await this.peerConnection.createAnswer();
     await this.peerConnection.setLocalDescription(answer);
@@ -206,6 +223,7 @@ export class VideoCallComponent implements OnInit, OnDestroy {
 
   private async handleAnswer(answer: RTCSessionDescriptionInit) {
     if (!this.peerConnection) return;
+    console.log('Received answer, setting remote description...');
     await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
   }
 
@@ -219,27 +237,32 @@ export class VideoCallComponent implements OnInit, OnDestroy {
   }
 
   private async startLocalStream() {
+    // navigator.mediaDevices is only available in secure contexts (HTTPS or localhost)
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      console.error('Media devices API not available. The page must be served over HTTPS or localhost.');
+      this.mediaUnavailable = true;
+      this.isVideoOff = true;
+      return;
+    }
+
     try {
       console.log('Requesting camera/microphone access...');
       this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      console.log('Media stream acquired');
-      
-      if (this.localVideo) {
-        this.localVideo.nativeElement.srcObject = this.localStream;
-        console.log('Attached local stream to video element');
-        
-        // --- START RECORDING ---
-        this.mediaRecorder = new MediaRecorder(this.localStream);
-        this.mediaRecorder.ondataavailable = (event) => {
-            if (event.data.size > 0) this.videoChunks.push(event.data);
-        };
-        this.mediaRecorder.start();
-        // -----------------------
-      } else {
-        console.warn('Local video element not found yet');
-        // If the view isn't ready, we might need to wait or rely on ngAfterViewInit
-        // But since initCall is async and called after ngOnInit, it's usually fine.
-      }
+      console.log('Media stream acquired, tracks:', this.localStream.getTracks().map(t => t.kind));
+
+      // localVideo is guaranteed to exist because we wait for AfterViewInit
+      this.localVideo.nativeElement.srcObject = this.localStream;
+      // Force play to handle autoplay restrictions
+      this.localVideo.nativeElement.play().catch(e => console.warn('Autoplay blocked:', e));
+      console.log('Attached local stream to video element');
+
+      // --- START RECORDING ---
+      this.mediaRecorder = new MediaRecorder(this.localStream);
+      this.mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) this.videoChunks.push(event.data);
+      };
+      this.mediaRecorder.start();
+      // -----------------------
     } catch (err) {
       console.error('Error accessing media devices:', err);
       // Attempt audio only if video fails
@@ -265,28 +288,27 @@ export class VideoCallComponent implements OnInit, OnDestroy {
 
   async endCall() {
     console.log('Ending call process...');
-    
+
     try {
       if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
           this.mediaRecorder.stop();
           // Small delay to ensure the stop event is processed and chunks are finalized
           await new Promise(resolve => setTimeout(resolve, 500));
       }
-      
+
       if (this.appointmentId && this.videoChunks.length > 0) {
           try {
               const videoBlob = new Blob(this.videoChunks, { type: 'video/webm' });
               const file = new File([videoBlob], `call-${this.appointmentId}.webm`);
-              
-              // We use catch on individual calls to ensure failure doesn't block the next call or navigation
+
               console.log('Uploading recording...');
               await firstValueFrom(this.medicalRecordService.uploadRecording(this.appointmentId, file))
                 .catch(err => console.error('Failed to upload recording:', err));
-              
+
               console.log('Completing appointment...');
               await firstValueFrom(this.appointmentService.completeAppointment(Number(this.appointmentId)))
                 .catch(err => console.error('Failed to complete appointment:', err));
-              
+
               console.log('Call finalization steps initiated');
           } catch (err) {
               console.error('Error during call finalization cleanup:', err);
@@ -296,11 +318,11 @@ export class VideoCallComponent implements OnInit, OnDestroy {
       console.error('Critical error in endCall:', err);
     } finally {
       this.cleanup();
-      
+
       // Navigate to correct portal based on role
       const targetPath = this.isDoctor ? '/portal/doctor/dashboard' : '/portal/patient/medical-history';
       console.log('Navigating to:', targetPath);
-      
+
       this.router.navigate([targetPath]).catch(err => {
         console.error('Primary navigation failed, falling back:', err);
         this.router.navigate(['/appointments/my-appointments']);
@@ -315,11 +337,11 @@ export class VideoCallComponent implements OnInit, OnDestroy {
     if (this.localStream) {
       this.localStream.getTracks().forEach(track => track.stop());
     }
-    
+
     if (this.peerConnection) {
       this.peerConnection.close();
     }
-    
+
     if (this.localVideo) this.localVideo.nativeElement.srcObject = null;
     if (this.remoteVideo) this.remoteVideo.nativeElement.srcObject = null;
   }
