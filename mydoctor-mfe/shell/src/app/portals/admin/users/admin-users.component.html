@@ -1,0 +1,50 @@
+<div class="space-y-8">
+  <header class="flex justify-between items-end">
+    <div>
+      <h1 class="text-4xl font-black text-white uppercase tracking-tighter">User <span class="text-gray-500">Registry</span></h1>
+      <p class="text-gray-400 mt-2">Manage patient accounts and activity.</p>
+    </div>
+    <div class="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm font-bold text-gray-500">
+      TOTAL: {{ totalUsers }}
+    </div>
+  </header>
+
+  <div class="bg-zinc-900 rounded-3xl border border-zinc-800 overflow-hidden shadow-2xl">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-zinc-800 bg-zinc-950">
+          <th class="p-6 text-xs uppercase tracking-widest text-zinc-500 font-black">User</th>
+          <th class="p-6 text-xs uppercase tracking-widest text-zinc-500 font-black">Email</th>
+          <th class="p-6 text-xs uppercase tracking-widest text-zinc-500 font-black">Role</th>
+          <th class="p-6 text-xs uppercase tracking-widest text-zinc-500 font-black text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users" class="border-b border-zinc-800/50 hover:bg-white/[0.02] transition-colors group">
+          <td class="p-6">
+            <div class="flex items-center">
+               <div class="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center mr-4 text-sm font-bold border border-zinc-700">
+                 {{ user.firstName?.charAt(0) }}{{ user.lastName?.charAt(0) }}
+               </div>
+               <span class="font-bold text-white">{{ user.firstName }} {{ user.lastName }}</span>
+            </div>
+          </td>
+          <td class="p-6 text-zinc-400 font-mono text-sm">{{ user.email }}</td>
+          <td class="p-6">
+            <span class="px-3 py-1 bg-blue-900/30 text-blue-500 text-[10px] font-black uppercase rounded-full">
+              {{ user.role }}
+            </span>
+          </td>
+          <td class="p-6 text-right">
+            <button (click)="deleteUser(user.id)" class="text-zinc-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 font-bold">
+              Deactivate
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="users.length === 0 && !loading">
+          <td colspan="4" class="p-20 text-center text-zinc-600 font-bold italic">No users found in the sector.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      containers:
+        - name: payment-service
+          image: 408743494483.dkr.ecr.eu-west-3.amazonaws.com/mydoctor-payment-service:latest
+          ports:
+            - containerPort: 8083
+          env:
+            - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: mydoctor-config
+                  key: EUREKA_URL
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: mydoctor-config
+                  key: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:5432/mydoctor_payment_service"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mydoctor-secrets
+                  key: DB_PASSWORD
+            - name: STRIPE_SECRET_KEY
+              value: "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
+            - name: STRIPE_PUBLIC_KEY
+              value: "pk_test_TYooMQauvdEDq54NiTphI7jx"
+            - name: PAYMENT_MOCK
+              value: "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+spec:
+  ports:
+    - port: 8083
+  selector:
+    app: payment-service

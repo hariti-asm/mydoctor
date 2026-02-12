@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { Appointment } from '../../../core/models/appointment.model';
@@ -19,8 +19,24 @@ export class DoctorDashboardComponent implements OnInit {
 
   constructor(
     public authService: AuthService,
-    private appointmentService: AppointmentService
+    private appointmentService: AppointmentService,
+    private router: Router
   ) {}
+
+  joinCall(appointmentId: number): void {
+      console.log('Doctor joining call for appointment ID:', appointmentId);
+      this.router.navigate(['/portal/video-call', appointmentId])
+        .then(success => {
+            if (success) {
+                console.log('Navigation to video call successful');
+            } else {
+                console.error('Navigation to video call failed');
+            }
+        })
+        .catch(err => {
+            console.error('Error during navigation to video call:', err);
+        });
+  }
 
   ngOnInit(): void {
     this.authService.userProfile$.subscribe(profile => {
@@ -45,6 +61,10 @@ export class DoctorDashboardComponent implements OnInit {
 
   isMissed(apt: Appointment): boolean {
     if (apt.status === 'COMPLETED' || apt.status === 'CANCELLED') return false;
-    return new Date(apt.startDateTime) < new Date();
+    const now = new Date();
+    const startTime = new Date(apt.startDateTime);
+    // Relaxed for testing: allow joining up to 4 hours after start time
+    const expiryTime = new Date(startTime.getTime() + 4 * 60 * 60 * 1000); 
+    return now > expiryTime;
   }
 }

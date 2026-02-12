@@ -25,6 +25,8 @@ public class AppointmentJpaEntity {
     private LocalDateTime endDateTime;
     private String status;
     private String appointmentType;
+    @Column(length = 2000)
     private String reason;
+    @Column(length = 2000)
     private String notes;
 }

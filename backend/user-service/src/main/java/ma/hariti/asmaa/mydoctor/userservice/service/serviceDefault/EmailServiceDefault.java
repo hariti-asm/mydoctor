@@ -18,6 +18,9 @@ public class EmailServiceDefault implements EmailService {
     @Value("${spring.mail.from}")
     private String fromEmail;
 
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
     public EmailServiceDefault(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
@@ -54,18 +57,22 @@ public class EmailServiceDefault implements EmailService {
         message.setFrom(fromEmail);
         message.setTo(to);
         message.setSubject("Password Reset Request - My Doctor");
+        String resetLink = frontendUrl + "/reset-password?token=" + resetToken;
         message.setText("""
                 Hello,
 
                 We received a request to reset your password.
-                To reset your password, use the following token: %s
+                To reset your password, click the link below:
+                %s
+
+                Or use the following token manually if the link doesn't work: %s
 
                 If you didn't request this, please ignore this email or contact support.
                 This token will expire in 30 minutes.
 
                 Best regards,
                 The MyDoctor Team
-                """.formatted(resetToken));
+                """.formatted(resetLink, resetToken));
 
         try {
             mailSender.send(message);
@@ -112,7 +119,8 @@ public class EmailServiceDefault implements EmailService {
     }
 
     @Override
-    public void sendMeetingLinkEmail(String to, String patientName, String doctorName, String date, String time,
+    public void sendMeetingLinkEmail(String to, String recipientName, String patientName, String doctorName,
+            String date, String time,
             String meetingLink) {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         try {
@@ -136,6 +144,7 @@ public class EmailServiceDefault implements EmailService {
                             .card { background: #f8fbff; border-radius: 10px; padding: 25px; margin: 25px 0; border: 1px solid #e1e9f0; }
                             .item { margin-bottom: 15px; font-size: 16px; display: block; }
                             .label { color: #6c757d; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; display: block; margin-bottom: 4px; }
+                            .label-dark { color: #6c757d; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; display: block; margin-bottom: 4px; }
                             .value { color: #2c3e50; font-weight: 600; font-size: 17px; }
                             .cta { text-align: center; margin-top: 40px; }
                             .btn { background-color: #0d6efd; color: #ffffff !important; padding: 18px 35px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px; display: inline-block; transition: all 0.3s ease; }
@@ -153,6 +162,7 @@ public class EmailServiceDefault implements EmailService {
                                 <p>Your video consultation has been scheduled. Here are the appointment details:</p>
 
                                 <div class="card">
+                                    <span class="item"><span class="label">Patient</span><span class="value">%s</span></span>
                                     <span class="item"><span class="label">Doctor</span><span class="value">Dr. %s</span></span>
                                     <span class="item"><span class="label">Date</span><span class="value">%s</span></span>
                                     <span class="item"><span class="label">Time</span><span class="value">%s</span></span>
@@ -174,7 +184,7 @@ public class EmailServiceDefault implements EmailService {
                     </body>
                     </html>
                     """
-                    .formatted(patientName, doctorName, date, time, meetingLink,
+                    .formatted(recipientName, patientName, doctorName, date, time, meetingLink,
                             java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase());
 
             helper.setText(htmlContent, true);

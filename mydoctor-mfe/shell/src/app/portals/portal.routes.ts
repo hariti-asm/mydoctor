@@ -31,6 +31,8 @@ export const PORTAL_ROUTES: Routes = [
     loadComponent: () => import('./admin/layout/admin-layout.component').then(m => m.AdminLayoutComponent),
     children: [
         { path: 'dashboard', loadComponent: () => import('./admin/dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent) },
+        { path: 'users', loadComponent: () => import('./admin/users/admin-users.component').then(m => m.AdminUsersComponent) },
+        { path: 'doctors', loadComponent: () => import('./admin/doctors/admin-doctors.component').then(m => m.AdminDoctorsComponent) },
         { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

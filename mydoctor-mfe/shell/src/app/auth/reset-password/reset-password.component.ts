@@ -32,6 +32,21 @@ import { AuthService } from '../../core/services/auth.service';
 
           <form *ngIf="!successMessage" [formGroup]="resetPasswordForm" (ngSubmit)="onSubmit()" class="space-y-6">
             <div>
+              <label for="token" class="block text-sm font-medium text-gray-700">
+                Reset Token
+              </label>
+              <div class="mt-1">
+                <input id="token" formControlName="token" type="text" required
+                  class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  placeholder="Paste the token from your email"
+                  [ngClass]="{'border-red-500': resetPasswordForm.get('token')?.invalid && resetPasswordForm.get('token')?.touched}">
+              </div>
+              <div *ngIf="resetPasswordForm.get('token')?.invalid && resetPasswordForm.get('token')?.touched" class="text-red-500 text-xs mt-1">
+                Reset token is required.
+              </div>
+            </div>
+
+            <div>
               <label for="password" class="block text-sm font-medium text-gray-700">
                 New Password
               </label>
@@ -63,7 +78,7 @@ import { AuthService } from '../../core/services/auth.service';
             </div>
 
             <div>
-              <button type="submit" [disabled]="resetPasswordForm.invalid || isLoading || !token"
+              <button type="submit" [disabled]="resetPasswordForm.invalid || isLoading"
                 class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed">
                 <span *ngIf="isLoading" class="mr-2">
                   <!-- Spinner -->
@@ -76,9 +91,6 @@ import { AuthService } from '../../core/services/auth.service';
               </button>
             </div>
           </form>
-           <div *ngIf="!token" class="mt-4 text-center text-red-600">
-              Invalid or missing reset token.
-           </div>
         </div>
       </div>
     </div>
@@ -89,7 +101,6 @@ export class ResetPasswordComponent implements OnInit {
     isLoading = false;
     successMessage: string | null = null;
     errorMessage: string | null = null;
-    token: string | null = null;
     showPassword = false;
 
     constructor(
@@ -99,6 +110,7 @@ export class ResetPasswordComponent implements OnInit {
         private router: Router
     ) {
         this.resetPasswordForm = this.fb.group({
+            token: ['', Validators.required],
             password: ['', [Validators.required, Validators.minLength(6)]],
             confirmPassword: ['', Validators.required]
         }, { validators: this.passwordMatchValidator });
@@ -107,9 +119,9 @@ export class ResetPasswordComponent implements OnInit {
     ngOnInit(): void {
         // Get token from query params
         this.route.queryParams.subscribe(params => {
-            this.token = params['token'];
-            if (!this.token) {
-                this.errorMessage = 'Missing reset token.';
+            const token = params['token'];
+            if (token) {
+                this.resetPasswordForm.patchValue({ token: token });
             }
         });
     }
@@ -120,15 +132,15 @@ export class ResetPasswordComponent implements OnInit {
     }
 
     onSubmit(): void {
-        if (this.resetPasswordForm.invalid || !this.token) return;
+        if (this.resetPasswordForm.invalid) return;
 
         this.isLoading = true;
         this.successMessage = null;
         this.errorMessage = null;
 
-        const newPassword = this.resetPasswordForm.get('password')?.value;
+        const { token, password } = this.resetPasswordForm.value;
 
-        this.authService.resetPassword(this.token, newPassword).subscribe({
+        this.authService.resetPassword(token, password).subscribe({
             next: () => {
                 this.isLoading = false;
                 this.successMessage = 'Password has been successfully reset. You can now login with your new password.';

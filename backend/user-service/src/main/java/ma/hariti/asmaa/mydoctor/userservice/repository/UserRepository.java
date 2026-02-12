@@ -14,6 +14,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Boolean existsByEmail(String email);
 
+    long countByRole(ma.hariti.asmaa.mydoctor.userservice.entity.enums.Role role);
+
+    org.springframework.data.domain.Page<User> findAllByRole(
+            ma.hariti.asmaa.mydoctor.userservice.entity.enums.Role role,
+            org.springframework.data.domain.Pageable pageable);
+
     @Modifying
     @Query("UPDATE User u SET u.resetToken = NULL, u.resetTokenExpiryDate = NULL WHERE u.resetToken = :refreshToken")
     void deleteByResetToken(String refreshToken);

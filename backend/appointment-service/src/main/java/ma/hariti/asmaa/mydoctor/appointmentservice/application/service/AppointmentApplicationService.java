@@ -57,11 +57,16 @@ public class AppointmentApplicationService {
         String baseUrl = frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl;
         String meetingLink = baseUrl + "/portal/video-call/" + appointment.getId();
 
+        String patientFullName = patient.getFirstName() + " "
+                + (patient.getLastName() != null ? patient.getLastName() : "");
+        String doctorFullName = doctor.getFirstName() + " "
+                + (doctor.getLastName() != null ? doctor.getLastName() : "");
+
         AppointmentNotificationRequest patientNotify = AppointmentNotificationRequest.builder()
                 .to(patient.getEmail())
-                .patientName(
-                        patient.getFirstName() + " " + (patient.getLastName() != null ? patient.getLastName() : ""))
-                .doctorName(doctor.getFirstName() + " " + (doctor.getLastName() != null ? doctor.getLastName() : ""))
+                .recipientName(patientFullName)
+                .patientName(patientFullName)
+                .doctorName(doctorFullName)
                 .appointmentDate(date)
                 .appointmentTime(time)
                 .meetingLink(meetingLink)
@@ -69,9 +74,9 @@ public class AppointmentApplicationService {
 
         AppointmentNotificationRequest doctorNotify = AppointmentNotificationRequest.builder()
                 .to(doctor.getEmail())
-                .patientName(
-                        patient.getFirstName() + " " + (patient.getLastName() != null ? patient.getLastName() : ""))
-                .doctorName(doctor.getFirstName() + " " + (doctor.getLastName() != null ? doctor.getLastName() : ""))
+                .recipientName("Dr. " + doctorFullName)
+                .patientName(patientFullName)
+                .doctorName(doctorFullName)
                 .appointmentDate(date)
                 .appointmentTime(time)
                 .meetingLink(meetingLink)

@@ -6,24 +6,21 @@
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
     <div class="bg-zinc-900 p-8 rounded-3xl border border-zinc-800 shadow-2xl">
-      <span class="text-zinc-500 font-bold text-xs uppercase tracking-widest">Active Sessions</span>
+      <span class="text-zinc-500 font-bold text-xs uppercase tracking-widest">Total Users</span>
       <div class="mt-4 flex items-baseline">
-        <span class="text-6xl font-black text-white">1,204</span>
-        <span class="ml-2 text-green-500 font-bold">+12%</span>
+        <span class="text-6xl font-black text-white">{{ stats?.totalUsers || 0 }}</span>
       </div>
     </div>
     <div class="bg-zinc-900 p-8 rounded-3xl border border-zinc-800 shadow-2xl">
-       <span class="text-zinc-500 font-bold text-xs uppercase tracking-widest">System Load</span>
+       <span class="text-zinc-500 font-bold text-xs uppercase tracking-widest">Total Doctors</span>
        <div class="mt-4 flex items-baseline">
-        <span class="text-6xl font-black text-white">24</span>
-        <span class="ml-2 text-white font-bold">%</span>
+        <span class="text-6xl font-black text-white">{{ stats?.totalDoctors || 0 }}</span>
       </div>
     </div>
     <div class="bg-zinc-900 p-8 rounded-3xl border border-zinc-800 shadow-2xl">
-       <span class="text-zinc-500 font-bold text-xs uppercase tracking-widest">Pending Verification</span>
+       <span class="text-zinc-500 font-bold text-xs uppercase tracking-widest">Total Patients</span>
        <div class="mt-4 flex items-baseline">
-        <span class="text-6xl font-black text-red-500">12</span>
-        <span class="ml-2 text-zinc-500 font-bold">Docs</span>
+        <span class="text-6xl font-black text-white">{{ stats?.totalPatients || 0 }}</span>
       </div>
     </div>
   </div>

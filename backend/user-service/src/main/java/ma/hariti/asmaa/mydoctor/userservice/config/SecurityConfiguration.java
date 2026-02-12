@@ -49,6 +49,7 @@ public class SecurityConfiguration {
                                                                 "/api/v1/notifications/**",
                                                                 "/error")
                                                 .permitAll()
+                                                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                                                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**")
                                                 .permitAll()
                                                 .anyRequest().authenticated())

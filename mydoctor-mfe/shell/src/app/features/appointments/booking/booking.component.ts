@@ -5,11 +5,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { CreateAppointmentRequest } from '../../../core/models/appointment.model';
+import { PaymentService } from '../../../core/services/payment.service';
+import { StripePaymentComponent } from '../../payment/stripe-payment.component';
 
 @Component({
   selector: 'app-booking',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, StripePaymentComponent],
   templateUrl: './booking.component.html'
 })
 export class BookingComponent implements OnInit {
@@ -25,12 +27,18 @@ export class BookingComponent implements OnInit {
   selectedSlot: string | null = null;
   loadingSlots = false;
 
+  // Payment integration
+  showPayment = false;
+  paymentClientSecret = '';
+  newBookingId: number | null = null;
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
     private appointmentService: AppointmentService,
-    private authService: AuthService
+    private authService: AuthService,
+    private paymentService: PaymentService
   ) {
     // Set minDate to today
     const today = new Date();
@@ -105,14 +113,14 @@ export class BookingComponent implements OnInit {
 
     this.appointmentService.createAppointment(request).subscribe({
       next: (res: any) => {
-        this.loading = false;
+        console.log('Appointment created successfully, skipping payment as requested');
         this.router.navigate(['/appointments/my-appointments']);
+        this.loading = false;
       },
       error: (err: any) => {
         this.loading = false;
         if (err.status === 409) {
              this.error = 'This slot has already been taken. Please choose another one.';
-             // Reload slots to refresh view
              this.loadSlots(dateStr);
         } else {
              this.error = 'Failed to book appointment. Please try again.';
@@ -120,5 +128,13 @@ export class BookingComponent implements OnInit {
         console.error(err);
       }
     });
+  }
+
+  onPaymentSuccess(paymentIntentId: string) {
+      // Logic bypassed
+  }
+
+  onPaymentError(error: string) {
+      // Logic bypassed
   }
 }

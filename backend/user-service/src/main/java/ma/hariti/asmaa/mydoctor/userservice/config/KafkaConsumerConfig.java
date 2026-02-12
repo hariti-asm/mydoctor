@@ -31,9 +31,8 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
         JsonDeserializer<AppointmentNotificationRequest> jsonDeserializer = new JsonDeserializer<>(
-                AppointmentNotificationRequest.class);
-        jsonDeserializer.addTrustedPackages("ma.hariti.asmaa.mydoctor.appointmentservice.application.dto",
-                "ma.hariti.asmaa.mydoctor.userservice.dto.request");
+                AppointmentNotificationRequest.class, false); // false = ignore type headers
+        jsonDeserializer.addTrustedPackages("*");
 
         return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), jsonDeserializer);
     }

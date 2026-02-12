@@ -33,6 +33,7 @@ public class NotificationController {
     public ResponseEntity<Void> sendAppointmentNotification(@RequestBody AppointmentNotificationRequest request) {
         emailService.sendMeetingLinkEmail(
                 request.getTo(),
+                request.getRecipientName(),
                 request.getPatientName(),
                 request.getDoctorName(),
                 request.getAppointmentDate(),

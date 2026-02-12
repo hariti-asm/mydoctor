@@ -6,6 +6,13 @@
   <base href="/">
   <meta content="width=device-width, initial-scale=1" name="viewport">
   <link href="favicon.ico" rel="icon" type="image/x-icon">
+  <script>
+    console.log('Global shim execution started');
+    window.global = window;
+    window.process = { env: { DEBUG: undefined } };
+    console.log('Global shim execution finished. global defined:', !!window.global);
+  </script>
+  <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
 <app-root></app-root>

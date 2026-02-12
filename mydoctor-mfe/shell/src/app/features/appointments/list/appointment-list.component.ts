@@ -4,7 +4,7 @@ import { AppointmentService } from '../../../core/services/appointment.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Appointment } from '../../../core/models/appointment.model';
 
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { PrescriptionModalComponent } from '../prescription-modal/prescription-modal.component';
 
 @Component({
@@ -25,7 +25,11 @@ export class AppointmentListComponent implements OnInit {
 
   isMissed(apt: Appointment): boolean {
     if (apt.status === 'COMPLETED' || apt.status === 'CANCELLED') return false;
-    return new Date(apt.startDateTime) < new Date();
+    const now = new Date();
+    const startTime = new Date(apt.startDateTime);
+    // Relaxed for testing: allow joining up to 4 hours after start time
+    const expiryTime = new Date(startTime.getTime() + 4 * 60 * 60 * 1000);
+    return now > expiryTime;
   }
 
   openDetails(apt: Appointment): void {
@@ -41,7 +45,8 @@ export class AppointmentListComponent implements OnInit {
     const diffHours = (now.getTime() - startTime.getTime()) / (1000 * 60 * 60);
 
     if (apt.appointmentType === 'VIDEO') {
-        return `This video consultation was scheduled for ${startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}. It is marked as missed because the secure session was not completed or the join window expired.`;
+        const expiryTime = new Date(startTime.getTime() + 4 * 60 * 60 * 1000);
+        return `This video consultation was scheduled for ${startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}. It is marked as missed because the 4-hour join window (until ${expiryTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}) has expired.`;
     }
     
     if (diffHours > 24) {
@@ -72,8 +77,24 @@ export class AppointmentListComponent implements OnInit {
 
   constructor(
     private appointmentService: AppointmentService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
+
+  joinCall(appointmentId: number): void {
+      console.log('Joining call for appointment ID:', appointmentId);
+      this.router.navigate(['/portal/video-call', appointmentId])
+        .then(success => {
+            if (success) {
+                console.log('Navigation to video call successful');
+            } else {
+                console.error('Navigation to video call failed');
+            }
+        })
+        .catch(err => {
+            console.error('Error during navigation to video call:', err);
+        });
+  }
 
   ngOnInit(): void {
     this.authService.userProfile$.subscribe((user: any) => {

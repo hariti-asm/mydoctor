@@ -1,5 +1,11 @@
 <div class="video-container h-screen bg-black text-white flex flex-col pt-20">
-  <div class="flex-1 relative flex items-center justify-center p-4">
+  <div *ngIf="!userEmail" class="flex-1 flex items-center justify-center p-4">
+      <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+          <p class="text-zinc-500 font-medium">Initializing Video Consultation...</p>
+      </div>
+  </div>
+  <div *ngIf="userEmail" class="flex-1 relative flex items-center justify-center p-4">
     <!-- Remote Video (Main) -->
     <div class="w-full h-full bg-zinc-900 rounded-3xl overflow-hidden shadow-2xl relative border border-zinc-800">
       <div class="absolute inset-0 flex items-center justify-center" *ngIf="!isRemoteJoined">
@@ -14,7 +20,7 @@
       
       <!-- Participant Tag -->
       <div class="absolute bottom-6 left-6 bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl text-sm font-bold border border-white/10">
-          {{ isDoctor ? 'Patient Preview' : 'Dr. Alami' }}
+          {{ isDoctor ? 'Patient Preview' : 'Doctor Previews' }}
       </div>
     </div>
 

@@ -18,6 +18,7 @@ public class AppointmentNotificationConsumer {
         try {
             emailService.sendMeetingLinkEmail(
                     request.getTo(),
+                    request.getRecipientName(),
                     request.getPatientName(),
                     request.getDoctorName(),
                     request.getAppointmentDate(),

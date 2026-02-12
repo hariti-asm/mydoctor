@@ -3,3 +3,4 @@ CREATE DATABASE mydoctor_doctor_service;
 CREATE DATABASE mydoctor_appointment_service;
 CREATE DATABASE mydoctor_patient_service;
 CREATE DATABASE mydoctor_medicalrecord_service;
+CREATE DATABASE mydoctor_payment_service;
