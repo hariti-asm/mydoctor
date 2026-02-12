@@ -7,7 +7,7 @@ data:
   FRONTEND_URL: "http://acd1fe27a17e643c3a25b0abf092a2b8-1616107781.eu-west-3.elb.amazonaws.com"
   API_URL: "http://aa06a5294546d4577853058b2e7ea645-1403566258.eu-west-3.elb.amazonaws.com"
   DB_HOST: "postgres"
-  AWS_REGION: "eu-west-3"
+  AWS_REGION: "us-east-1"
   EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
   S3_BUCKET: "mydoctor-recordings-prod"
   S3_TRANSCRIPT_BUCKET: "mydoctor-transcripts-prod"
