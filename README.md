@@ -2,116 +2,107 @@
 
 Full-stack telemedicine platform with Angular micro-frontends and Spring Boot microservices, deployed to AWS EKS with Terraform.
 
-## Highlights
-- Role-based portals (Patient / Doctor / Admin), JWT auth, profile management.
-- Doctor search with AI symptom-to-specialist suggestion; appointment booking with slot lookup; video consultations (WebRTC + STOMP/SockJS signaling) with recording and completion flow.
-- Medical records pipeline: uploads to S3, SQS-triggered transcription (Amazon Transcribe), presigned replay links, AI notes field.
-- Payments via Stripe (test mode) and appointment email notifications via Kafka consumer.
-- Microservices behind Spring Cloud Gateway with Eureka discovery; PostgreSQL per service; Kafka for async events.
-- Terraform-provisioned AWS: VPC, subnets, NAT GW, EKS, KMS, CloudWatch; GitHub Actions build/push to ECR and deploy to EKS; Kubernetes manifests in `k8s/` with internet-facing LB for the shell frontend.
+## 🚀 Highlights & Features
 
-## Tech Stack
-- **Frontend:** Angular 19 (Nx workspace), TailwindCSS, STOMP/SockJS, WebRTC, Stripe JS, Nginx container.
-- **Backend:** Spring Boot 3 (Java 21), Spring Security JWT, Spring Cloud Gateway, Netflix Eureka, Spring Kafka, PostgreSQL, Stripe SDK, AWS SDK (S3, SQS, Transcribe).
-- **Infra/DevOps:** Docker, docker-compose, Kubernetes manifests, Terraform (AWS VPC + EKS via terraform-aws-modules), GitHub Actions CI/CD to ECR/EKS, AWS services (ECR, EKS, S3, SQS, Transcribe, KMS, CloudWatch, IAM, NAT GW).
+- **Role-based portals**: Patient / Doctor / Admin portals with JWT authentication and profile management.
+- **AI-Powered Search**: Doctor search with AI symptom-to-specialist suggestions.
+- **Video Consultations**: Real-time video calls (WebRTC + STOMP/SockJS) with recording capabilities.
+- **Prescription (Ordonnance)**: Doctors generate prescriptions in a modal; system sends professionally formatted emails to patients.
+- **Medical Records**: Automated pipeline for S3 uploads, SQS-triggered AI transcription (Amazon Transcribe), and secure attachment management.
+- **Payments**: Integrated Stripe (test mode) for appointment billing.
+- **infrastructure**: Microservices architecture with Spring Cloud Gateway, Eureka discovery, and Kafka for async events.
 
-## Architecture (services)
-- discovery-server (Eureka)
-- api-gateway (Spring Cloud Gateway)
-- user-service (auth, users, doctors, patients, admin, notifications, signaling)
-- doctor-service, patient-service (doctor/patient domain data)
-- appointment-service (booking, slots, notifications → Kafka)
-- medicalrecord-service (records, S3 uploads, SQS transcription pipeline)
-- payment-service (Stripe intents/webhooks)
-- shell frontend (Angular MFE, exposed via LoadBalancer)
+## 🛠️ Tech Stack
 
-## Domain Class Diagram (core flow)
+- **Backend:** Java 21, Spring Boot 3.5.6, Spring Security JWT, Spring Cloud Gateway, Netflix Eureka, Spring Kafka, PostgreSQL, Stripe SDK, AWS SDK (S3, SQS, Transcribe).
+- **Frontend:** Angular 18/19 (Nx workspace), TailwindCSS, Module Federation (MFE), STOMP/SockJS, WebRTC.
+- **Infra/DevOps:** Docker, Kubernetes (EKS), Terraform (AWS VPC + EKS), GitHub Actions CI/CD to ECR/EKS, AWS (S3, SQS, Transcribe, KMS, CloudWatch).
+
+## 🏗️ Architecture & Class Diagram
+
+The following diagram illustrates the core entities and their relationships.
+
 ```mermaid
 classDiagram
-  class User {
-    +Long id
-    +String email
-    +Role role
-  }
-  class Doctor {
-    +Long id
-    +String specialization
-    +Long userId
-  }
-  class Patient {
-    +Long id
-    +Long userId
-  }
-  class Appointment {
-    +Long id
-    +Long doctorId
-    +Long patientId
-    +LocalDateTime startDateTime
-    +LocalDateTime endDateTime
-    +String status
-    +String appointmentType
-  }
-  class MedicalRecord {
-    +Long id
-    +String appointmentId
-    +Long patientId
-    +String recordingUrl
-    +String aiNotes
-  }
-  class Payment {
-    +Long id
-    +Long bookingId
-    +BigDecimal amount
-    +String status
-  }
+    class User {
+        +Long id
+        +String name
+        +String email
+        +String password
+        +Role role
+    }
 
-  User <|-- Doctor
-  User <|-- Patient
-  Doctor "1" -- "*" Appointment : schedules
-  Patient "1" -- "*" Appointment : books
-  Appointment "1" -- "1" MedicalRecord : produces
-  Appointment "1" -- "0..1" Payment : charges
+    class Patient {
+        +Long id
+        +String dateOfBirth
+    }
+
+    class Doctor {
+        +Long id
+        +String speciality
+        +Double consultationFee
+    }
+
+    class Appointment {
+        +Long id
+        +Long doctorId
+        +Long patientId
+        +LocalDateTime startDateTime
+        +String status
+    }
+
+    class MedicalRecord {
+        +Long id
+        +Long appointmentId
+        +String diagnosis
+        +String recordingUrl
+    }
+
+    class Prescription {
+        +String medications
+        +String dosage
+    }
+
+    class MedicalCertificate {
+        +String fileUrl
+        +LocalDateTime issuedAt
+    }
+
+    class Payment {
+        +Long id
+        +Long appointmentId
+        +Double amount
+        +String status
+    }
+
+    User <|-- Patient
+    User <|-- Doctor
+    User "1" -- "*" Appointment : has
+    Patient "1" -- "*" Appointment : schedules
+    Doctor "1" -- "*" Appointment : attends
+    Appointment "1" -- "1" MedicalRecord : generates
+    MedicalRecord "1" -- "1" Prescription : contains
+    MedicalRecord "1" -- "*" MedicalCertificate : includes
+    Appointment "1" -- "0..1" Payment : requires
 ```
 
-## Local Development
-### Prereqs
-- Java 21, Node 18+, Docker, docker-compose, AWS CLI (configured) if deploying to AWS.
+## 📂 Project Structure
 
-### Backend (all services, local ports)
-- Start via Maven wrappers (service discovery first):
-  ```bash
-  ./start-services.sh
-  # or run individual services with ./mvnw -f backend/<service>/pom.xml spring-boot:run
-  ```
-- Databases: PostgreSQL (see `docker-compose.yml` mounts `backend/init.sql`).
+- `backend/`: Spring Boot microservices.
+- `mydoctor-mfe/`: Angular micro-frontend workspace (Nx).
+- `k8s/`: Kubernetes manifest files.
+- `terraform/`: Infrastructure as Code for AWS.
 
-### Frontend (shell)
-```bash
-cd mydoctor-mfe/shell
-npm install
-npm start  # http://localhost:4200
-```
+## 🛠️ Getting Started
 
-### Full stack with docker-compose
-```bash
-docker compose up --build
-```
+### Local Development
 
-## Kubernetes (EKS)
-1) Ensure cluster kubeconfig: `aws eks update-kubeconfig --region us-east-1 --name mydoctor-cluster`
-2) Apply configs: `kubectl apply -f k8s/config.yaml -f k8s/shell.yaml -f k8s/*.yaml`
-3) Get frontend URL: `kubectl get svc shell-frontend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'`
+1. Clone the repository.
+2. Run `docker-compose up -d` for infrastructure (Postgres, Kafka).
+3. Run services via `./start-services.sh`.
+4. Run frontend via `nx serve shell` in `mydoctor-mfe`.
 
-## Terraform (AWS VPC + EKS)
-```bash
-cd terraform
-terraform init
-terraform apply -auto-approve
-```
-Outputs provide `configure_kubectl` and cluster endpoint; then deploy k8s manifests as above.
+### Kubernetes (EKS)
 
-## CI/CD
-- `.github/workflows/deploy.yml`: build backend services and shell, push to ECR, then apply k8s manifests on EKS.
-
-## Security Note
-- Rotate the secrets in `k8s/config.yaml` and `k8s/` manifests before any public deployment; move to AWS Secrets Manager/Parameter Store and use sealed secrets or env injection in CI/CD.
+1. Update kubeconfig: `aws eks update-kubeconfig --region us-east-1 --name mydoctor-cluster`
+2. Apply manifests: `kubectl apply -f k8s/`
