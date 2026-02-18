@@ -60,24 +60,38 @@ graph TD
 
 ### Activity Diagram: Consultation Flow
 
-Describes the step-by-step process of a patient booking and completing a consultation.
+Describes the step-by-step process and responsibilities (swimlanes) during a consultation.
 
 ```mermaid
-stateDiagram-v2
-    [*] --> SearchDoctor
-    SearchDoctor --> BookAppointment
-    BookAppointment --> ProcessPayment: Stripe
-    ProcessPayment --> JoinVideoCall: Appointment Time
-    JoinVideoCall --> RecordingStarted: WebRTC
-    state RecordingStarted {
-        [*] --> Consultation
-        Consultation --> PrescriptionCreated: Doctor Input
-    }
-    RecordingStarted --> UploadToS3: On End Call
-    UploadToS3 --> TriggerSQS
-    TriggerSQS --> AI_Transcription: Amazon Transcribe
-    AI_Transcription --> StoreMedicalRecord: Update DB
-    StoreMedicalRecord --> [*]
+flowchart TD
+    subgraph Patient
+        P1(Search Doctor) --> P2(Book Appointment)
+        P2 --> P3(Payment via Stripe)
+        P3 --> P4(Join Video Call)
+        P4 --> P5(Leave Call)
+    end
+
+    subgraph Doctor
+        D1(Accept Call) --> D2(Consultation)
+        D2 --> D3(Create Prescription)
+        D3 --> D4(End Call)
+    end
+
+    subgraph "System / AWS Cloud"
+        S1(Record Video)
+        S2(Upload to S3)
+        S3(Trigger SQS)
+        S4(Amazon Transcribe)
+        S5(Update Medical Record)
+    end
+
+    P4 <--> D1
+    D2 <--> S1
+    P5 --> S2
+    D4 --> S2
+    S2 --> S3
+    S3 --> S4
+    S4 --> S5
 ```
 
 ## Technical Stack
