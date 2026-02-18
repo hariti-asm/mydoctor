@@ -5,7 +5,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { MedicalRecordService } from '../../core/services/medical-record.service';
 import { AppointmentService } from '../../core/services/appointment.service';
 import { SignalingService, WebRTCMessage } from '../../core/services/signaling.service';
-import { Subscription, Observable, firstValueFrom as firstValueFromRxjs, filter, take } from 'rxjs';
+import { Subscription, Observable, firstValueFrom as firstValueFromRxjs, filter, take, timeout, catchError, throwError } from 'rxjs';
 
 @Component({
   selector: 'app-video-call',
@@ -14,19 +14,27 @@ import { Subscription, Observable, firstValueFrom as firstValueFromRxjs, filter,
   templateUrl: './video-call.component.html'
 })
 export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('localVideo') localVideo!: ElementRef<HTMLVideoElement>;
+  @ViewChild('localVideoMain') localVideoMain!: ElementRef<HTMLVideoElement>;
+  @ViewChild('localVideoPIP') localVideoPIP!: ElementRef<HTMLVideoElement>;
   @ViewChild('remoteVideo') remoteVideo!: ElementRef<HTMLVideoElement>;
 
   appointmentId: string | null = null;
   isDoctor = false;
-  userEmail = '';
+  userEmail: string | null = null;
   isMuted = false;
   isVideoOff = false;
   isRemoteJoined = false;
   mediaUnavailable = false;
+  initStatus = 'Initializing...';
+  initError: string | null = null;
+  private sessionId = Math.random().toString(36).substring(2);
+
+  get currentUrl(): string {
+    return window.location.href;
+  }
 
   private peerConnection?: RTCPeerConnection;
-  private localStream?: MediaStream;
+  localStream: MediaStream | null = null;
   private signalingSubscription?: Subscription;
   private mediaRecorder?: MediaRecorder;
   private videoChunks: Blob[] = [];
@@ -51,15 +59,31 @@ export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     this.appointmentId = this.route.snapshot.paramMap.get('id');
-
-    this.authService.userProfile$.subscribe(profile => {
-      if (profile) {
-        this.isDoctor = profile.role === 'DOCTOR';
-        this.userEmail = profile.email;
-        this.profileReady = true;
-        this.tryInitCall();
-      }
+    this.initStatus = 'Loading user profile...';
+    // Load user profile
+    this.authService.userProfile$.pipe(
+      filter(profile => !!profile),
+      take(1),
+      timeout(10000),
+      catchError(err => {
+        console.error('Profile load timeout/error:', err);
+        this.initError = 'Failed to load user profile. Please ensure you are logged in.';
+        return throwError(() => err);
+      })
+    ).subscribe(profile => {
+      this.userEmail = profile!.email;
+      this.isDoctor = profile!.role === 'DOCTOR';
+      console.log('User profile loaded:', this.userEmail, 'isDoctor:', this.isDoctor);
+      this.profileReady = true;
+      this.tryInitCall();
     });
+
+    // Global initialization timeout
+    setTimeout(() => {
+      if (!this.initError && (!this.userEmail || (!this.localStream && !this.mediaUnavailable))) {
+        this.initError = 'Initialization taking longer than expected. Please check your connection and permissions.';
+      }
+    }, 15000);
   }
 
   ngAfterViewInit() {
@@ -84,8 +108,30 @@ export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
   private async initCall() {
     if (!this.appointmentId) return;
 
-    // Start local stream — view is guaranteed ready so localVideo element exists
-    await this.startLocalStream();
+    this.initStatus = 'Accessing camera and microphone...';
+    console.log('Initializing call for appointment:', this.appointmentId);
+    try {
+      this.localStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+      this.updateLocalVideoElements();
+      this.initStatus = 'Connecting to signaling server...';
+
+      // --- START RECORDING ---
+      this.mediaRecorder = new MediaRecorder(this.localStream);
+      this.mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) this.videoChunks.push(event.data);
+      };
+      this.mediaRecorder.start();
+      // -----------------------
+
+    } catch (e) {
+      console.error('Could not access camera/microphone:', e);
+      this.mediaUnavailable = true;
+      this.initError = 'Could not access camera/microphone. Please ensure you have granted permissions and are on HTTPS.';
+      return; // Stop initialization if media access fails
+    }
 
     // Connect to signaling server
     this.signalingService.connect(this.appointmentId);
@@ -95,15 +141,32 @@ export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
       this.handleSignalingMessage(msg);
     });
 
-    // Wait for signaling connection to be established
-    console.log('Waiting for signaling connection...');
-    await firstValueFromRxjs(
-      this.signalingService.connected$.pipe(
-        filter(connected => connected === true),
-        take(1)
-      )
-    );
-    console.log('Signaling connected, setting up peer connection and joining...');
+    // Wait for signaling connection to be established with a 10s timeout
+    console.log('Waiting for signaling connection for appointment:', this.appointmentId);
+    try {
+      await firstValueFromRxjs(
+        this.signalingService.connected$.pipe(
+          filter(connected => connected === true),
+          take(1),
+          // Add a timeout so we don't hang forever
+          timeout(10000),
+          catchError(() => {
+            console.error('Signaling connection timed out after 10s');
+            this.mediaUnavailable = true; // Use this to show an error state
+            this.initError = 'Signaling connection timed out. Please check your internet connection.';
+            return throwError(() => new Error('Signaling timeout'));
+          })
+        )
+      );
+      console.log('Signaling connected, setting up peer connection and joining...');
+      this.initStatus = 'Setting up peer connection...';
+    } catch (err) {
+      console.error('Failed to initialize call due to signaling issues:', err);
+      if (!this.initError) { // Don't overwrite a more specific error
+        this.initError = 'Failed to connect to the call server. Please try again.';
+      }
+      return;
+    }
 
     this.setupPeerConnection();
 
@@ -111,9 +174,11 @@ export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
     this.signalingService.sendSignal({
       type: 'join',
       data: { role: this.isDoctor ? 'DOCTOR' : 'PATIENT' },
-      sender: this.userEmail,
+      sender: this.userEmail!,
+      sessionId: this.sessionId,
       appointmentId: this.appointmentId
     });
+    this.initStatus = 'Waiting for other participant...';
   }
 
   private setupPeerConnection() {
@@ -132,6 +197,8 @@ export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.remoteVideo) {
         this.remoteVideo.nativeElement.srcObject = event.streams[0];
         this.isRemoteJoined = true;
+        this.initStatus = 'Call connected!';
+        this.updateLocalVideoElements();
       }
     };
 
@@ -141,7 +208,8 @@ export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
         this.signalingService.sendSignal({
           type: 'candidate',
           data: event.candidate,
-          sender: this.userEmail,
+          sender: this.userEmail!,
+          sessionId: this.sessionId,
           appointmentId: this.appointmentId
         });
       }
@@ -151,6 +219,13 @@ export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
       console.log('Connection state:', this.peerConnection?.connectionState);
       if (this.peerConnection?.connectionState === 'connected') {
           this.isRemoteJoined = true;
+          this.initStatus = 'Call connected!';
+          this.updateLocalVideoElements();
+      } else if (this.peerConnection?.connectionState === 'failed' || this.peerConnection?.connectionState === 'disconnected') {
+          console.error('Peer connection failed or disconnected.');
+          if (!this.isRemoteJoined) { // Only show error if call never properly connected
+            this.initError = 'Call connection failed or disconnected. Please check your network.';
+          }
       }
     };
   }
@@ -165,13 +240,14 @@ export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
     this.signalingService.sendSignal({
       type: 'offer',
       data: offer,
-      sender: this.userEmail,
+      sender: this.userEmail!,
+      sessionId: this.sessionId,
       appointmentId: this.appointmentId
     });
   }
 
-  private async handleSignalingMessage(msg: WebRTCMessage) {
-    if (msg.sender === this.userEmail) return; // Ignore own messages
+  private async handleSignalingMessage(msg: any) {
+    if (msg.sessionId === this.sessionId) return; // Ignore own messages from this session
 
     console.log('Received signaling message:', msg.type, 'from:', msg.sender);
 
@@ -201,8 +277,18 @@ export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
       // Doctor creates the offer when someone (patient) joins
       console.log('I am the doctor, creating offer for the patient...');
       this.initiateCall();
+    } else if (msg.data?.role === 'DOCTOR') {
+      // I am the patient, and a doctor just joined.
+      // I should announce myself again so the doctor knows to create an offer.
+      console.log('Doctor joined, announcing myself...');
+      this.signalingService.sendSignal({
+        type: 'join',
+        data: { role: 'PATIENT' },
+        sender: this.userEmail!,
+        sessionId: this.sessionId,
+        appointmentId: this.appointmentId!
+      });
     }
-    // Patient does nothing here — they wait for the offer from the doctor.
   }
 
   private async handleOffer(offer: RTCSessionDescriptionInit) {
@@ -216,7 +302,8 @@ export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
     this.signalingService.sendSignal({
       type: 'answer',
       data: answer,
-      sender: this.userEmail,
+      sender: this.userEmail!,
+      sessionId: this.sessionId,
       appointmentId: this.appointmentId
     });
   }
@@ -236,46 +323,6 @@ export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private async startLocalStream() {
-    // navigator.mediaDevices is only available in secure contexts (HTTPS or localhost)
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      console.error('Media devices API not available. The page must be served over HTTPS or localhost.');
-      this.mediaUnavailable = true;
-      this.isVideoOff = true;
-      return;
-    }
-
-    try {
-      console.log('Requesting camera/microphone access...');
-      this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      console.log('Media stream acquired, tracks:', this.localStream.getTracks().map(t => t.kind));
-
-      // localVideo is guaranteed to exist because we wait for AfterViewInit
-      this.localVideo.nativeElement.srcObject = this.localStream;
-      // Force play to handle autoplay restrictions
-      this.localVideo.nativeElement.play().catch(e => console.warn('Autoplay blocked:', e));
-      console.log('Attached local stream to video element');
-
-      // --- START RECORDING ---
-      this.mediaRecorder = new MediaRecorder(this.localStream);
-      this.mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0) this.videoChunks.push(event.data);
-      };
-      this.mediaRecorder.start();
-      // -----------------------
-    } catch (err) {
-      console.error('Error accessing media devices:', err);
-      // Attempt audio only if video fails
-      try {
-        console.log('Attempting audio-only stream...');
-        this.localStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
-        this.isVideoOff = true;
-      } catch (audioErr) {
-        console.error('Audio-only access also failed:', audioErr);
-      }
-    }
-  }
-
   toggleAudio() {
     this.isMuted = !this.isMuted;
     this.localStream?.getAudioTracks().forEach(track => track.enabled = !this.isMuted);
@@ -284,6 +331,10 @@ export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
   toggleVideo() {
     this.isVideoOff = !this.isVideoOff;
     this.localStream?.getVideoTracks().forEach(track => track.enabled = !this.isVideoOff);
+  }
+
+  leaveCall() {
+    this.endCall();
   }
 
   async endCall() {
@@ -330,6 +381,25 @@ export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private updateLocalVideoElements() {
+    if (!this.localStream) return;
+
+    // Use a small timeout to allow Angular to render the newly swapped elements
+    setTimeout(() => {
+      const main = this.localVideoMain?.nativeElement;
+      const pip = this.localVideoPIP?.nativeElement;
+
+      if (main) {
+        main.srcObject = this.localStream || null;
+        main.play().catch(e => console.warn('Main video autoplay blocked:', e));
+      }
+      if (pip) {
+        pip.srcObject = this.localStream || null;
+        pip.play().catch(e => console.warn('PIP video autoplay blocked:', e));
+      }
+    }, 100);
+  }
+
   private cleanup() {
     this.signalingSubscription?.unsubscribe();
     this.signalingService.disconnect();
@@ -342,7 +412,8 @@ export class VideoCallComponent implements OnInit, AfterViewInit, OnDestroy {
       this.peerConnection.close();
     }
 
-    if (this.localVideo) this.localVideo.nativeElement.srcObject = null;
+    if (this.localVideoMain) this.localVideoMain.nativeElement.srcObject = null;
+    if (this.localVideoPIP) this.localVideoPIP.nativeElement.srcObject = null;
     if (this.remoteVideo) this.remoteVideo.nativeElement.srcObject = null;
   }
 }

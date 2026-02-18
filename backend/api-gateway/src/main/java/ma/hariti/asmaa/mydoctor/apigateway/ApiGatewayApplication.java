@@ -21,8 +21,11 @@ public class ApiGatewayApplication {
     
     String frontendUrl = System.getenv("APP_FRONTEND_URL");
     if (frontendUrl != null && !frontendUrl.isEmpty()) {
-        corsConfig.addAllowedOrigin(frontendUrl);
-        System.out.println("Added allowed origin from env: " + frontendUrl);
+        String[] origins = frontendUrl.split(",");
+        for (String origin : origins) {
+            corsConfig.addAllowedOrigin(origin.trim());
+            System.out.println("Added allowed origin from env: " + origin.trim());
+        }
     } else {
         System.out.println("APP_FRONTEND_URL not set, adding default wildcard/placeholder");
         // Fallback or leave as is? Let's add wildcard pattern for safety if env missing in dev

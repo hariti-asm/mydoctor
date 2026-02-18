@@ -8,6 +8,7 @@ export interface WebRTCMessage {
     type: string;
     data: any;
     sender: string;
+    sessionId?: string;
     appointmentId: string;
 }
 

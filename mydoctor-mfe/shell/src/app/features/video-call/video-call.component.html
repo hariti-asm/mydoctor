@@ -1,63 +1,101 @@
-<div class="video-container h-screen bg-black text-white flex flex-col pt-20">
-  <div *ngIf="!userEmail" class="flex-1 flex items-center justify-center p-4">
-      <div class="text-center">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
-          <p class="text-zinc-500 font-medium">Initializing Video Consultation...</p>
-      </div>
-  </div>
-  <div *ngIf="mediaUnavailable" class="absolute top-24 left-1/2 -translate-x-1/2 z-50 bg-yellow-500/90 text-black px-6 py-3 rounded-xl text-sm font-bold shadow-xl max-w-md text-center">
-      ⚠️ Camera/Microphone unavailable. This page must be served over <strong>HTTPS</strong> or <strong>localhost</strong> for video calls to work.
-  </div>
-  <div *ngIf="userEmail" class="flex-1 relative flex items-center justify-center p-4">
-    <!-- Remote Video (Main) -->
-    <div class="w-full h-full bg-zinc-900 rounded-3xl overflow-hidden shadow-2xl relative border border-zinc-800">
-      <div class="absolute inset-0 flex items-center justify-center" *ngIf="!isRemoteJoined">
-        <div class="text-center">
-            <div class="animate-pulse bg-indigo-500/20 p-6 rounded-full mb-4 inline-block">
-                <svg class="w-12 h-12 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-            </div>
-            <p class="text-zinc-500 font-medium">Waiting for participant to join...</p>
-        </div>
-      </div>
-      <video #remoteVideo autoplay playsinline class="w-full h-full object-cover"></video>
+<div class="video-container h-screen bg-black text-white relative overflow-hidden">
+  
+  <!-- Initializing Overlay -->
+  <div *ngIf="!userEmail || (!localStream && !mediaUnavailable)" class="absolute inset-0 flex items-center justify-center z-50 bg-black">
+    <div class="text-center max-w-sm px-6">
+      <div *ngIf="!initError" class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-6"></div>
+      <div *ngIf="initError" class="text-red-500 text-5xl mb-6">⚠️</div>
       
-      <!-- Participant Tag -->
-      <div class="absolute bottom-6 left-6 bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl text-sm font-bold border border-white/10">
-          {{ isDoctor ? 'Patient Preview' : 'Doctor Previews' }}
-      </div>
-    </div>
+      <h2 class="text-xl font-semibold mb-2">
+        {{ initError ? 'Initialization Failed' : 'Setting up Consultation' }}
+      </h2>
+      <p class="text-zinc-500 font-medium mb-8">
+        {{ initError || initStatus }}
+      </p>
 
-    <!-- Local Video (Picture-in-picture) -->
-    <div class="absolute top-8 right-8 w-48 h-64 bg-zinc-800 rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20">
-      <video #localVideo autoplay playsinline muted class="w-full h-full object-cover mirror"></video>
-      <div class="absolute bottom-3 left-3 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-bold">
-          You
+      <div *ngIf="initError" class="flex flex-col space-y-4">
+        <button (click)="leaveCall()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-medium py-3 px-6 rounded-xl transition-all">
+          Go Back to Dashboard
+        </button>
+        <p class="text-xs text-zinc-600">
+          Current URL: {{ currentUrl }}
+        </p>
       </div>
     </div>
   </div>
 
-  <!-- Call Controls -->
-  <div class="h-28 bg-zinc-950/80 backdrop-blur-xl border-t border-white/5 flex items-center justify-center space-x-6 px-4">
-    <button (click)="toggleAudio()" [class]="isMuted ? 'bg-red-500 text-white' : 'bg-zinc-800 text-gray-300 hover:bg-zinc-700'" class="p-4 rounded-full transition-all transform active:scale-95 shadow-xl">
+  <!-- Setup Error Banner (Legacy fallback) -->
+  <div *ngIf="mediaUnavailable && !initError" class="absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center space-x-3 pointer-events-auto">
+    <span class="text-lg">⚠️</span>
+    <span class="font-medium">Setup Error: Please check camera permissions and HTTPS.</span>
+  </div>
+
+  <!-- Main Video Area (Remote or Local if alone) -->
+  <div class="w-full h-full relative">
+    <!-- Display Local Video as Main if Remote hasn't joined -->
+    <video *ngIf="!isRemoteJoined" #localVideoMain autoplay playsinline muted class="w-full h-full object-cover mirror"></video>
+    
+    <!-- Display Remote Video as Main when Joined -->
+    <video *ngIf="isRemoteJoined" #remoteVideo autoplay playsinline class="w-full h-full object-cover"></video>
+
+    <!-- Overlay when waiting for participant -->
+    <div *ngIf="userEmail && !isRemoteJoined" class="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
+      <div class="bg-black/40 backdrop-blur-xl p-8 rounded-3xl border border-white/10 text-center shadow-2xl">
+          <div class="animate-pulse bg-indigo-500/20 p-4 rounded-full mb-4 inline-block">
+              <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+          </div>
+          <p class="text-white font-bold text-lg mb-1">Connecting to Consultation...</p>
+          <p class="text-zinc-400 text-sm">Please wait for the participant to join.</p>
+      </div>
+    </div>
+
+    <!-- Small PIP Local Video (Only when remote is joined) -->
+    <div *ngIf="isRemoteJoined" class="absolute bottom-32 right-8 w-48 h-32 md:w-64 md:h-44 bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 transition-all duration-500 z-40">
+        <video #localVideoPIP autoplay playsinline muted class="w-full h-full object-cover mirror"></video>
+        <div class="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-bold border border-white/10">
+            You
+        </div>
+    </div>
+
+    <!-- Participant Identifier Tag -->
+    <div *ngIf="isRemoteJoined" class="absolute top-8 left-8 bg-black/40 backdrop-blur-xl px-4 py-2 rounded-2xl text-sm font-bold border border-white/10 z-40">
+        <span class="flex items-center">
+            <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+            {{ isDoctor ? 'Patient' : 'Doctor' }}
+        </span>
+    </div>
+  </div>
+
+  <!-- Modern Floating Control Bar -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center space-x-4 bg-zinc-900/80 backdrop-blur-2xl px-8 py-4 rounded-full border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+    
+    <!-- Audio Toggle -->
+    <button (click)="toggleAudio()" [class]="isMuted ? 'bg-red-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'" class="p-4 rounded-full transition-all transform active:scale-90 border border-white/5">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path *ngIf="!isMuted" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-        <path *ngIf="isMuted" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd"></path>
+        <rect *ngIf="isMuted" x="9" y="3" width="6" height="12" rx="3" stroke-width="2" fill="currentColor"></rect>
       </svg>
     </button>
-    
-    <button (click)="endCall()" class="px-8 py-4 bg-red-600 text-white rounded-2xl font-black hover:bg-red-700 transition-all shadow-lg active:scale-95 flex items-center">
-      <svg class="w-6 h-6 mr-2 rotate-[135deg]" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C10.077 18 2 9.923 2 2V3z"></path></svg>
-      Leave Consultation
+
+    <!-- End Call Button -->
+    <button (click)="endCall()" class="px-10 py-4 bg-red-600 text-white rounded-full font-black hover:bg-red-700 transition-all shadow-lg active:scale-90 flex items-center border border-red-500/50">
+      <svg class="w-6 h-6 mr-3 rotate-[135deg]" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C10.077 18 2 9.923 2 2V3z"></path></svg>
+      Leave
     </button>
 
-    <button (click)="toggleVideo()" [class]="!isVideoOff ? 'bg-zinc-800 text-gray-300 hover:bg-zinc-700' : 'bg-red-500 text-white'" class="p-4 rounded-full transition-all transform active:scale-95 shadow-xl">
+    <!-- Video Toggle -->
+    <button (click)="toggleVideo()" [class]="isVideoOff ? 'bg-red-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'" class="p-4 rounded-full transition-all transform active:scale-90 border border-white/5">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path *ngIf="!isVideoOff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-        <path *ngIf="isVideoOff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <path *ngIf="isVideoOff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"></path>
       </svg>
     </button>
   </div>
 </div>
+
+<style>
+ .mirror { transform: scaleX(-1); }
+</style>
 
 <style>
  .mirror { transform: scaleX(-1); }

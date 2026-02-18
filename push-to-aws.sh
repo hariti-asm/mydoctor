@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration
-REGION="eu-west-3"
+REGION="us-east-1"
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 PREFIX="mydoctor"
 
@@ -17,6 +17,7 @@ else
     "appointment-service"
     "patient-service"
     "medicalrecord-service"
+    "payment-service"
     "shell"
   )
 fi
