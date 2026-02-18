@@ -127,7 +127,7 @@ public class EmailServiceDefault implements EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
             helper.setFrom(fromEmail);
             helper.setTo(to);
-            helper.setSubject("🗓️ Your Video Consultation - Dr. " + doctorName);
+            helper.setSubject("Your Video Consultation - Dr. " + doctorName);
 
             String htmlContent = """
                     <!DOCTYPE html>

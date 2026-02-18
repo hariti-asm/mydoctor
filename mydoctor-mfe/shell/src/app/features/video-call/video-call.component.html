@@ -4,7 +4,7 @@
   <div *ngIf="!userEmail || (!localStream && !mediaUnavailable)" class="absolute inset-0 flex items-center justify-center z-50 bg-black">
     <div class="text-center max-w-sm px-6">
       <div *ngIf="!initError" class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-6"></div>
-      <div *ngIf="initError" class="text-red-500 text-5xl mb-6">⚠️</div>
+      <div *ngIf="initError" class="text-red-500 font-bold mb-6">Error Detail</div>
       
       <h2 class="text-xl font-semibold mb-2">
         {{ initError ? 'Initialization Failed' : 'Setting up Consultation' }}
@@ -26,7 +26,7 @@
 
   <!-- Setup Error Banner (Legacy fallback) -->
   <div *ngIf="mediaUnavailable && !initError" class="absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center space-x-3 pointer-events-auto">
-    <span class="text-lg">⚠️</span>
+    <span class="text-lg font-bold">Error</span>
     <span class="font-medium">Setup Error: Please check camera permissions and HTTPS.</span>
   </div>
 

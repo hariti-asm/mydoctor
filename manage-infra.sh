@@ -16,48 +16,48 @@ function show_usage() {
 }
 
 if [ ! -d "$TF_DIR" ]; then
-    echo "❌ Error: Terraform directory not found at $TF_DIR"
+    echo "Error: Terraform directory not found at $TF_DIR"
     exit 1
 fi
 
 case $COMMAND in
     up)
-        echo "🚀 Initializing and applying Terraform configuration..."
+        echo "Initializing and applying Terraform configuration..."
         cd "$TF_DIR" || exit 1
         terraform init && terraform apply -auto-approve
         if [ $? -eq 0 ]; then
-            echo "✅ Infrastructure is up! Running 'connect' to update your kubeconfig..."
+            echo "Infrastructure is up. Running 'connect' to update your kubeconfig..."
             cd .. && ./manage-infra.sh connect
         else
-            echo "❌ Error: Terraform apply failed."
+            echo "Error: Terraform apply failed."
             exit 1
         fi
         ;;
     down)
-        echo "🛑 WARNING: This will destroy your EKS cluster and all running pods."
+        echo "WARNING: This will destroy your EKS cluster and all running pods."
         echo "Are you sure? (y/N)"
         read -r response
         if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-            echo "🗑️ Destroying infrastructure..."
+            echo "Destroying infrastructure..."
             cd $TF_DIR && terraform destroy -auto-approve
-            echo "✅ Infrastructure destroyed. No more AWS charges for these resources."
+            echo "Infrastructure destroyed. No more AWS charges for these resources."
         else
             echo "Operation cancelled."
         fi
         ;;
     connect)
-        echo "🔌 Connecting to EKS cluster..."
+        echo "Connecting to EKS cluster..."
         cd $TF_DIR
         KUBECONTROL_CMD=$(terraform output -raw configure_kubectl 2>/dev/null)
         if [ $? -eq 0 ] && [ ! -z "$KUBECONTROL_CMD" ]; then
             eval $KUBECONTROL_CMD
-            echo "✅ Kubeconfig updated."
+            echo "Kubeconfig updated."
         else
-            echo "❌ Error: Could not get connection command. Is the infrastructure up?"
+            echo "Error: Could not get connection command. Is the infrastructure up?"
         fi
         ;;
     status)
-        echo "📊 Infrastructure Status:"
+        echo "Infrastructure Status:"
         cd $TF_DIR && terraform output
         ;;
     *)

@@ -22,10 +22,10 @@ else
   )
 fi
 
-echo "🚀 Starting MyDoctor AWS Deployment Flow..."
+echo "Starting MyDoctor AWS Deployment Flow..."
 
 # 1. Login to ECR
-echo "🔑 Logging in to Amazon ECR..."
+echo "Logging in to Amazon ECR..."
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
 
 # 2. Build and Push each service
@@ -35,7 +35,7 @@ do
   IMAGE_TAG="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO_NAME:latest"
 
   echo "----------------------------------------------------"
-  echo "📦 Processing Repository: $REPO_NAME"
+  echo "Processing Repository: $REPO_NAME"
   
   # Create repo if not exists
   aws ecr create-repository --repository-name $REPO_NAME --region $REGION || echo "Repo already exists"
@@ -47,14 +47,14 @@ do
     CONTEXT="./backend/$SERVICE"
   fi
 
-  echo "🔨 Building image from $CONTEXT..."
+  echo "Building image from $CONTEXT..."
   docker build --platform linux/amd64 -t $REPO_NAME $CONTEXT
 
   # Tag and Push
-  echo "🏷️ Tagging and Pushing $IMAGE_TAG..."
+  echo "Tagging and Pushing $IMAGE_TAG..."
   docker tag $REPO_NAME:latest $IMAGE_TAG
   docker push $IMAGE_TAG
 done
 
-echo "✅ All images have been pushed to AWS ECR successfully!"
+echo "All images have been pushed to AWS ECR successfully!"
 echo "You can now find your images at: https://$REGION.console.aws.amazon.com/ecr/repositories"

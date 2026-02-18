@@ -2,23 +2,23 @@
 
 Full-stack telemedicine platform with Angular micro-frontends and Spring Boot microservices, deployed to AWS EKS with Terraform.
 
-## 🚀 Highlights & Features
+## Features & Implementation
 
-- **Role-based portals**: Patient / Doctor / Admin portals with JWT authentication and profile management.
-- **AI-Powered Search**: Doctor search with AI symptom-to-specialist suggestions.
-- **Video Consultations**: Real-time video calls (WebRTC + STOMP/SockJS) with recording capabilities.
-- **Prescription (Ordonnance)**: Doctors generate prescriptions in a modal; system sends professionally formatted emails to patients.
-- **Medical Records**: Automated pipeline for S3 uploads, SQS-triggered AI transcription (Amazon Transcribe), and secure attachment management.
-- **Payments**: Integrated Stripe (test mode) for appointment billing.
-- **infrastructure**: Microservices architecture with Spring Cloud Gateway, Eureka discovery, and Kafka for async events.
+- **Role-based portals**: Patient, Doctor, and Admin portals with JWT authentication and profile management.
+- **Doctor Search**: Search functionality with AI-driven symptom-to-specialist suggestions.
+- **Video Consultations**: Integrated WebRTC and STOMP/SockJS for real-time video calls with recording support.
+- **Prescription Management**: Digital prescription generation with automated email delivery to patients.
+- **Medical Records**: Automated document pipeline using S3, SQS, and Amazon Transcribe for AI-driven transcription and attachment handling.
+- **Payments**: Stripe integration for appointment billing and payment processing.
+- **Microservices Architecture**: Distributed system using Spring Cloud Gateway, Eureka discovery, and Kafka for asynchronous event processing.
 
-## 🛠️ Tech Stack
+## Technical Stack
 
 - **Backend:** Java 21, Spring Boot 3.5.6, Spring Security JWT, Spring Cloud Gateway, Netflix Eureka, Spring Kafka, PostgreSQL, Stripe SDK, AWS SDK (S3, SQS, Transcribe).
 - **Frontend:** Angular 18/19 (Nx workspace), TailwindCSS, Module Federation (MFE), STOMP/SockJS, WebRTC.
 - **Infra/DevOps:** Docker, Kubernetes (EKS), Terraform (AWS VPC + EKS), GitHub Actions CI/CD to ECR/EKS, AWS (S3, SQS, Transcribe, KMS, CloudWatch).
 
-## 🏗️ Architecture & Class Diagram
+## Architecture and Data Model
 
 The following diagram illustrates the core entities and their relationships.
 
@@ -86,14 +86,14 @@ classDiagram
     Appointment "1" -- "0..1" Payment : requires
 ```
 
-## 📂 Project Structure
+## Project Structure
 
 - `backend/`: Spring Boot microservices.
 - `mydoctor-mfe/`: Angular micro-frontend workspace (Nx).
 - `k8s/`: Kubernetes manifest files.
 - `terraform/`: Infrastructure as Code for AWS.
 
-## 🛠️ Getting Started
+## Getting Started
 
 ### Local Development
 
