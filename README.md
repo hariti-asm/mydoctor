@@ -22,6 +22,8 @@ Full-stack telemedicine platform with Angular micro-frontends and Spring Boot mi
 
 ### Architectural Patterns
 
+- **Hexagonal Architecture (Ports & Adapters)**: Each microservice is structured following Hexagonal principles, separating the core business logic (**Domain**) from technical implementation details (**Infrastructure**) and entry points (**Web**). This ensures the business logic remains decoupled and easily testable.
+- **Domain-Driven Design (DDD)**: The project follows DDD principles, emphasizing a rich domain model and clear bounded contexts for each microservice.
 - **Microservices Architecture**: The system is decomposed into small, independent services (User, Appointment, Medical Record, etc.) that communicate over network protocols.
 - **API Gateway Pattern**: A single entry point (Spring Cloud Gateway) handles routing, security, and cross-cutting concerns for all backend services.
 - **Service Discovery**: Netflix Eureka is used for dynamic service registration and discovery, enabling horizontal scalability.
