@@ -36,7 +36,20 @@ MyDoctor is a comprehensive healthcare platform built using a microservices arch
 - **CI/CD**: GitHub Actions
 - **Logging/Monitoring**: CloudWatch (AWS)
 
-## 🏗️ Architecture & Class Diagram
+## � Medical Documentation & Features
+
+### Ordonnance (Prescription)
+
+- **Workflow**: Doctors can generate prescriptions directly from the Appointment modal in the frontend.
+- **Delivery**: The system automatically sends a professionally formatted email to the patient with the diagnosis and prescribed medications.
+- **Storage**: Prescriptions are stored as structured text within the patient's `MedicalRecord` for future reference.
+
+### Attestation Médicale (Medical Certificate)
+
+- **Current Support**: Currently handled via the **Medical Attachments** feature. Doctors can upload signed PDF certificates or images directly to a patient's medical record.
+- **Storage**: Attachments are securely stored in **AWS S3** with time-limited presigned URLs for secure access.
+
+## �🏗️ Architecture & Class Diagram
 
 The following diagram illustrates the core entities and their relationships across different microservices.
 
