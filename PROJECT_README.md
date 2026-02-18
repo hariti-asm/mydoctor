@@ -36,20 +36,20 @@ MyDoctor is a comprehensive healthcare platform built using a microservices arch
 - **CI/CD**: GitHub Actions
 - **Logging/Monitoring**: CloudWatch (AWS)
 
-## � Medical Documentation & Features
+## 🏥 Medical Documentation & Features
 
-### Ordonnance (Prescription)
+### Prescription
 
 - **Workflow**: Doctors can generate prescriptions directly from the Appointment modal in the frontend.
 - **Delivery**: The system automatically sends a professionally formatted email to the patient with the diagnosis and prescribed medications.
 - **Storage**: Prescriptions are stored as structured text within the patient's `MedicalRecord` for future reference.
 
-### Attestation Médicale (Medical Certificate)
+### Medical Certificate
 
 - **Current Support**: Currently handled via the **Medical Attachments** feature. Doctors can upload signed PDF certificates or images directly to a patient's medical record.
 - **Storage**: Attachments are securely stored in **AWS S3** with time-limited presigned URLs for secure access.
 
-## �🏗️ Architecture & Class Diagram
+## 🏗️ Architecture & Class Diagram
 
 The following diagram illustrates the core entities and their relationships across different microservices.
 
@@ -94,9 +94,21 @@ classDiagram
         +Long patientId
         +Long doctorId
         +String diagnosis
-        +String prescription
+        +String notes
         +String recordingUrl
         +String aiNotes
+    }
+
+    class Prescription {
+        +String medications
+        +String dosage
+        +String instructions
+    }
+
+    class MedicalCertificate {
+        +String fileUrl
+        +String type
+        +LocalDateTime issuedAt
     }
 
     class Payment {
@@ -112,7 +124,9 @@ classDiagram
     User "1" -- "*" Appointment : has
     Patient "1" -- "*" Appointment : schedules
     Doctor "1" -- "*" Appointment : attends
-    Appointment "1" -- "0..1" MedicalRecord : generates
+    Appointment "1" -- "1" MedicalRecord : generates
+    MedicalRecord "1" -- "1" Prescription : contains
+    MedicalRecord "1" -- "*" MedicalCertificate : includes
     Appointment "1" -- "0..1" Payment : requires
 ```
 
