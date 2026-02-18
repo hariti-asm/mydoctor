@@ -34,6 +34,7 @@ build/
 
 ### MyDoctor Specific ###
 .env
+*.env
 node_modules/
 dist/
 *.log
