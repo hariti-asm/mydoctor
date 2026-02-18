@@ -22,6 +22,64 @@ The platform implements a sophisticated, asynchronous pipeline for processing me
 4.  **Secure Storage**: The resulting transcriptions and AI-generated notes are linked back to the patient's `MedicalRecord` and stored in the PostgreSQL database for secure retrieval via the patient/doctor portals.
 5.  **Presigned Access**: Access to these private medical files is governed by **AWS IAM** policies and time-limited presigned URLs, ensuring maximum data privacy.
 
+## 📊 Application Workflow & Diagrams
+
+### Use Case Diagram
+
+Describes the interactions between users and the core system functionalities.
+
+```mermaid
+graph TD
+    subgraph "MyDoctor Platform"
+        UC1(Search & Filter Doctors)
+        UC2(Book Appointment)
+        UC3(Online Payment)
+        UC4(Video Consultation)
+        UC5(Manage Medical Records)
+        UC6(Generate Prescription)
+        UC7(AI Transcription)
+    end
+
+    Patient((Patient))
+    Doctor((Doctor))
+    AI_Service((AI Service))
+
+    Patient --> UC1
+    Patient --> UC2
+    Patient --> UC3
+    Patient --> UC4
+    Patient --> UC5
+
+    Doctor --> UC4
+    Doctor --> UC6
+    Doctor --> UC5
+
+    AI_Service --> UC7
+    UC7 -.-> UC5
+```
+
+### Activity Diagram: Consultation Flow
+
+Describes the step-by-step process of a patient booking and completing a consultation.
+
+```mermaid
+stateDiagram-v2
+    [*] --> SearchDoctor
+    SearchDoctor --> BookAppointment
+    BookAppointment --> ProcessPayment: Stripe
+    ProcessPayment --> JoinVideoCall: Appointment Time
+    JoinVideoCall --> RecordingStarted: WebRTC
+    state RecordingStarted {
+        [*] --> Consultation
+        Consultation --> PrescriptionCreated: Doctor Input
+    }
+    RecordingStarted --> UploadToS3: On End Call
+    UploadToS3 --> TriggerSQS
+    TriggerSQS --> AI_Transcription: Amazon Transcribe
+    AI_Transcription --> StoreMedicalRecord: Update DB
+    StoreMedicalRecord --> [*]
+```
+
 ## Technical Stack
 
 - **Backend:** Java 21, Spring Boot 3.5.6, Spring Security JWT, Spring Cloud Gateway, Netflix Eureka, Spring Kafka, PostgreSQL, Stripe SDK, AWS SDK (S3, SQS, Transcribe).
