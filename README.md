@@ -12,6 +12,16 @@ Full-stack telemedicine platform with Angular micro-frontends and Spring Boot mi
 - **Payments**: Stripe integration for appointment billing and payment processing.
 - **Microservices Architecture**: Distributed system using Spring Cloud Gateway, Eureka discovery, and Kafka for asynchronous event processing.
 
+## 🎥 AI-Driven Consultation Pipeline
+
+The platform implements a sophisticated, asynchronous pipeline for processing medical consultations:
+
+1.  **Cloud-Based Video Recording**: Consultation streams are processed and securely stored in **AWS S3** immediately after the session.
+2.  **Asynchronous Orchestration**: The `medicalrecord-service` triggers a message to **AWS SQS** upon recording completion to ensure decoupled, reliable processing.
+3.  **AI Transcription**: A backend worker processes the SQS queue, invoking **Amazon Transcribe** (AI) to generate highly accurate medical transcripts from the audio.
+4.  **Secure Storage**: The resulting transcriptions and AI-generated notes are linked back to the patient's `MedicalRecord` and stored in the PostgreSQL database for secure retrieval via the patient/doctor portals.
+5.  **Presigned Access**: Access to these private medical files is governed by **AWS IAM** policies and time-limited presigned URLs, ensuring maximum data privacy.
+
 ## Technical Stack
 
 - **Backend:** Java 21, Spring Boot 3.5.6, Spring Security JWT, Spring Cloud Gateway, Netflix Eureka, Spring Kafka, PostgreSQL, Stripe SDK, AWS SDK (S3, SQS, Transcribe).
@@ -83,6 +93,7 @@ classDiagram
         +Long appointmentId
         +String diagnosis
         +String recordingUrl
+        +String aiNotes
     }
 
     class Prescription {
