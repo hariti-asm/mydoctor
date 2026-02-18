@@ -18,6 +18,31 @@ Full-stack telemedicine platform with Angular micro-frontends and Spring Boot mi
 - **Frontend:** Angular 18/19 (Nx workspace), TailwindCSS, Module Federation (MFE), STOMP/SockJS, WebRTC.
 - **Infra/DevOps:** Docker, Kubernetes (EKS), Terraform (AWS VPC + EKS), GitHub Actions CI/CD to ECR/EKS, AWS (S3, SQS, Transcribe, KMS, CloudWatch).
 
+## Design Patterns
+
+### Architectural Patterns
+
+- **Microservices Architecture**: The system is decomposed into small, independent services (User, Appointment, Medical Record, etc.) that communicate over network protocols.
+- **API Gateway Pattern**: A single entry point (Spring Cloud Gateway) handles routing, security, and cross-cutting concerns for all backend services.
+- **Service Discovery**: Netflix Eureka is used for dynamic service registration and discovery, enabling horizontal scalability.
+- **Database per Service**: Each microservice manages its own PostgreSQL instance, ensuring loose coupling and data encapsulation.
+- **Event-Driven Architecture**: Asynchronous communication between services (e.g., Appointment to Notification) is handled via **Apache Kafka** (Pub/Sub).
+- **Micro-Frontends (MFE)**: The frontend is split into independent apps using **Webpack Module Federation**, allowing for modular development and deployment.
+
+### Backend Design Patterns
+
+- **Layered (N-Tier) Architecture**: Traditional separation of concerns into Controller, Service, and Repository layers.
+- **Dependency Injection**: Core Spring pattern used for decoupling object creation from usage.
+- **Data Transfer Object (DTO)**: Used to transfer data between layers and across service boundaries without exposing internal entities.
+- **Builder Pattern**: Extensively used (via Lombok) for creating complex domain objects and entities with a clear, fluent API.
+- **Repository Pattern**: Abstracts data persistence logic using Spring Data JPA.
+
+### Frontend Application Patterns
+
+- **Observer Pattern**: Heavy use of **RxJS** Observables to handle asynchronous data streams and event-driven UI updates.
+- **Component-Based Architecture**: Standard Angular approach to building reusable, encapsulated UI elements.
+- **Singleton Pattern**: Angular services are provided at the root level, ensuring unique instances for shared logic and state.
+
 ## Architecture and Data Model
 
 The following diagram illustrates the core entities and their relationships.
