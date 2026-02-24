@@ -20,13 +20,15 @@ public class Doctor {
     private String phoneNumber;
     private String bio;
     private Double consultationFee;
+    private String address;
+    private String city;
+    private Double latitude;
+    private Double longitude;
 
-    // Domain Logic example: Ensure full name consistency
     public String getFullName() {
         return "Dr. " + firstName + " " + lastName;
     }
 
-    // Domain Logic: Validate consultation fee
     public void updateConsultationFee(Double newFee) {
         if (newFee != null && newFee >= 0) {
             this.consultationFee = newFee;

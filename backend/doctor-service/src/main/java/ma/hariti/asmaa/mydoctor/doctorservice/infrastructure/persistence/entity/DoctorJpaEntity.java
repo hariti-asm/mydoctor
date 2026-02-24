@@ -29,4 +29,8 @@ public class DoctorJpaEntity {
     private String phoneNumber;
     private String bio;
     private Double consultationFee;
+    private String address;
+    private String city;
+    private Double latitude;
+    private Double longitude;
 }

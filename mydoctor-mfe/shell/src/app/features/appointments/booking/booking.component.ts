@@ -22,12 +22,10 @@ export class BookingComponent implements OnInit {
   currentUser: any;
   minDate: string;
   
-  // Slot handling
   availableSlots: string[] = [];
   selectedSlot: string | null = null;
   loadingSlots = false;
 
-  // Payment integration
   showPayment = false;
   paymentClientSecret = '';
   newBookingId: number | null = null;
@@ -40,7 +38,6 @@ export class BookingComponent implements OnInit {
     private authService: AuthService,
     private paymentService: PaymentService
   ) {
-    // Set minDate to today
     const today = new Date();
     this.minDate = today.toISOString().split('T')[0];
 
@@ -60,7 +57,6 @@ export class BookingComponent implements OnInit {
         this.currentUser = user;
     });
 
-    // Watch date changes
     this.bookingForm.get('date')?.valueChanges.subscribe(date => {
         if (date && this.doctorId) {
             this.loadSlots(date);
@@ -71,7 +67,7 @@ export class BookingComponent implements OnInit {
   loadSlots(date: string) {
       if (!this.doctorId) return;
       this.loadingSlots = true;
-      this.selectedSlot = null; // Reset selection
+      this.selectedSlot = null;
       this.appointmentService.getAvailableSlots(this.doctorId, date).subscribe({
           next: (slots) => {
               this.availableSlots = slots;
@@ -98,9 +94,9 @@ export class BookingComponent implements OnInit {
     
     const dateStr = this.bookingForm.value.date;
     const timeStr = this.selectedSlot;
-    // Combine date and time
+
     const startTime = new Date(`${dateStr}T${timeStr}`);
-    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 1 hour duration
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
 
     const request: CreateAppointmentRequest = {
       doctorId: this.doctorId,
@@ -108,7 +104,7 @@ export class BookingComponent implements OnInit {
       startDateTime: startTime.toISOString(),
       endDateTime: endTime.toISOString(),
       reason: this.bookingForm.value.reason,
-      appointmentType: (this.bookingForm.value.isVideoCall ? 'VIDEO' : 'IN_PERSON') as 'IN_PERSON' | 'VIDEO'
+      appointmentType: this.bookingForm.value.isVideoCall ? 'VIDEO' : 'IN_PERSON'
     };
 
     this.appointmentService.createAppointment(request).subscribe({
@@ -131,10 +127,8 @@ export class BookingComponent implements OnInit {
   }
 
   onPaymentSuccess(paymentIntentId: string) {
-      // Logic bypassed
   }
 
   onPaymentError(error: string) {
-      // Logic bypassed
   }
 }

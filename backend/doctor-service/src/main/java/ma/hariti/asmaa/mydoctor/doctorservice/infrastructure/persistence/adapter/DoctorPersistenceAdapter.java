@@ -5,6 +5,7 @@ import ma.hariti.asmaa.mydoctor.doctorservice.domain.model.Doctor;
 import ma.hariti.asmaa.mydoctor.doctorservice.domain.ports.DoctorRepository;
 import ma.hariti.asmaa.mydoctor.doctorservice.infrastructure.persistence.entity.DoctorJpaEntity;
 import ma.hariti.asmaa.mydoctor.doctorservice.infrastructure.persistence.repository.DoctorJpaRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -29,10 +30,23 @@ public class DoctorPersistenceAdapter implements DoctorRepository {
     }
 
     @Override
-    public List<Doctor> findAll() {
-        return jpaRepository.findAll().stream()
-                .map(this::toDomain)
-                .collect(Collectors.toList());
+    public Page<Doctor> findAll(org.springframework.data.domain.Pageable pageable) {
+        return jpaRepository.findAll(pageable).map(this::toDomain);
+    }
+
+    @Override
+    public Page<Doctor> searchDoctors(String speciality, String city, org.springframework.data.domain.Pageable pageable) {
+        Page<DoctorJpaEntity> entities;
+        if (speciality != null && city != null) {
+            entities = jpaRepository.findBySpecialityContainingIgnoreCaseAndCityContainingIgnoreCase(speciality, city, pageable);
+        } else if (speciality != null) {
+            entities = jpaRepository.findBySpecialityContainingIgnoreCase(speciality, pageable);
+        } else if (city != null) {
+            entities = jpaRepository.findByCityContainingIgnoreCase(city, pageable);
+        } else {
+            entities = jpaRepository.findAll(pageable);
+        }
+        return entities.map(this::toDomain);
     }
 
     @Override
@@ -40,7 +54,6 @@ public class DoctorPersistenceAdapter implements DoctorRepository {
         jpaRepository.deleteById(id);
     }
 
-    // Mapper methods (Manually for now, could use MapStruct later)
     private DoctorJpaEntity toEntity(Doctor doctor) {
         return DoctorJpaEntity.builder()
                 .id(doctor.getId())
@@ -51,6 +64,10 @@ public class DoctorPersistenceAdapter implements DoctorRepository {
                 .phoneNumber(doctor.getPhoneNumber())
                 .bio(doctor.getBio())
                 .consultationFee(doctor.getConsultationFee())
+                .address(doctor.getAddress())
+                .city(doctor.getCity())
+                .latitude(doctor.getLatitude())
+                .longitude(doctor.getLongitude())
                 .build();
     }
 
@@ -64,6 +81,10 @@ public class DoctorPersistenceAdapter implements DoctorRepository {
                 .phoneNumber(entity.getPhoneNumber())
                 .bio(entity.getBio())
                 .consultationFee(entity.getConsultationFee())
+                .address(entity.getAddress())
+                .city(entity.getCity())
+                .latitude(entity.getLatitude())
+                .longitude(entity.getLongitude())
                 .build();
     }
 }
