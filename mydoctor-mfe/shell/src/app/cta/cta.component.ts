@@ -1,13 +1,16 @@
 import { Component } from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {NgIf} from '@angular/common';
+import {NgIf, CommonModule} from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-cta',
   imports: [
     FormsModule,
     NgIf,
-    ReactiveFormsModule
+    CommonModule,
+    ReactiveFormsModule,
+    TranslateModule
   ],
   templateUrl: './cta.component.html',
   standalone: true,

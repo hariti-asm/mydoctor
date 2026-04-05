@@ -1,0 +1,47 @@
+{
+  "NAV": {
+    "HOME": "Home",
+    "DOCTORS": "Doctors",
+    "ABOUT": "About",
+    "CONTACT": "Contact",
+    "LOGIN": "Login",
+    "REGISTER": "Register",
+    "SEARCH": "Search"
+  },
+  "HERO": {
+    "TITLE": "Fast, Simple & Secure Healthcare",
+    "SUBTITLE": "Find and book appointments with top-rated doctors in your city.",
+    "CTA": "Find a Doctor"
+  },
+  "SEARCH": {
+    "TITLE": "Find Your Doctor",
+    "SPECIALITY": "Speciality",
+    "LOCATION": "Location (City)",
+    "SEARCH_BTN": "Search Now",
+    "AI_RECOMMANDATION": "AI Recommendation"
+  },
+  "FEATURES": {
+    "TITLE": "Why Choose MyDoctor?",
+    "F1_TITLE": "Certified Doctors",
+    "F1_DESC": "Verified specialists across multiple fields.",
+    "F2_TITLE": "24/7 Availability",
+    "F2_DESC": "Healthcare support whenever you need it.",
+    "F3_TITLE": "Secure & Private",
+    "F3_DESC": "Your medical data is always protected.",
+    "F4_TITLE": "Easy & Accessible",
+    "F4_DESC": "Book and consult in just a few clicks."
+  },
+  "CTA": {
+    "TITLE": "Ready to Experience Better Healthcare?",
+    "SUBTITLE": "Join thousands who have already transformed their healthcare journey.",
+    "BTN_GET_STARTED": "Get Started",
+    "BTN_CONTACT": "Contact Us"
+  },
+  "FOOTER": {
+    "MISSION": "Making quality healthcare accessible to everyone, everywhere.",
+    "PATIENTS": "For Patients",
+    "DOCTORS": "For Doctors",
+    "COMPANY": "Company",
+    "RIGHTS": "All rights reserved."
+  }
+}

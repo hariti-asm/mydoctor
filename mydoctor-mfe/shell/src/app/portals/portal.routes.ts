@@ -36,7 +36,6 @@ export const PORTAL_ROUTES: Routes = [
         { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
-  { path: 'video-call/:id', loadComponent: () => import('../features/video-call/video-call.component').then(m => m.VideoCallComponent) },
   {
       path: '',
       redirectTo: 'patient',

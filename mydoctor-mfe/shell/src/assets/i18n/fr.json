@@ -1,0 +1,47 @@
+{
+  "NAV": {
+    "HOME": "Accueil",
+    "DOCTORS": "Médecins",
+    "ABOUT": "À Propos",
+    "CONTACT": "Contact",
+    "LOGIN": "Connexion",
+    "REGISTER": "S'inscrire",
+    "SEARCH": "Rechercher"
+  },
+  "HERO": {
+    "TITLE": "Des soins rapides, simples et sécurisés",
+    "SUBTITLE": "Trouvez et prenez rendez-vous avec les meilleurs médecins de votre ville.",
+    "CTA": "Trouver un médecin"
+  },
+  "SEARCH": {
+    "TITLE": "Trouvez votre médecin",
+    "SPECIALITY": "Spécialité",
+    "LOCATION": "Lieu (Ville)",
+    "SEARCH_BTN": "Rechercher",
+    "AI_RECOMMANDATION": "Recommandation IA"
+  },
+  "FEATURES": {
+    "TITLE": "Pourquoi choisir MyDoctor ?",
+    "F1_TITLE": "Médecins Certifiés",
+    "F1_DESC": "Spécialistes vérifiés dans plusieurs domaines.",
+    "F2_TITLE": "Disponibilité 24/7",
+    "F2_DESC": "Aide médicale quand vous en avez besoin.",
+    "F3_TITLE": "Sécurisé et Privé",
+    "F3_DESC": "Vos données médicales sont toujours protégées.",
+    "F4_TITLE": "Facile et Accessible",
+    "F4_DESC": "Réservez et consultez en quelques clics."
+  },
+  "CTA": {
+    "TITLE": "Prêt pour une meilleure expérience ?",
+    "SUBTITLE": "Rejoignez des milliers de personnes qui ont déjà transformé leur parcours de santé.",
+    "BTN_GET_STARTED": "Commencer",
+    "BTN_CONTACT": "Nous contacter"
+  },
+  "FOOTER": {
+    "MISSION": "Rendre les soins de santé de qualité accessibles à tous, partout.",
+    "PATIENTS": "Pour les Patients",
+    "DOCTORS": "Pour les Médecins",
+    "COMPANY": "Entreprise",
+    "RIGHTS": "Tous droits réservés."
+  }
+}

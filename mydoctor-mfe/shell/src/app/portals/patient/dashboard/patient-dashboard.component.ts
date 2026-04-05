@@ -21,21 +21,6 @@ export class PatientDashboardComponent implements OnInit {
     private router: Router
   ) {}
 
-  joinCall(appointmentId: number): void {
-      console.log('Patient joining call for appointment ID:', appointmentId);
-      this.router.navigate(['/portal/video-call', appointmentId])
-        .then(success => {
-            if (success) {
-                console.log('Navigation to video call successful');
-            } else {
-                console.error('Navigation to video call failed');
-            }
-        })
-        .catch(err => {
-            console.error('Error during navigation to video call:', err);
-        });
-  }
-
   ngOnInit(): void {
     this.authService.userProfile$.subscribe(profile => {
       if (profile) {

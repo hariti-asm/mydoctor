@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { DoctorSearchService, Doctor, Page } from './doctor-search.service';
+import { TranslateModule } from '@ngx-translate/core';
+import { GoogleMapsModule } from '@angular/google-maps';
 
 @Component({
   selector: 'app-doctor-search',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, TranslateModule, GoogleMapsModule],
   templateUrl: './doctor-search.component.html',
   styleUrls: ['./doctor-search.component.css']
 })
@@ -30,8 +32,7 @@ export class DoctorSearchComponent {
   constructor(private fb: FormBuilder, private doctorService: DoctorSearchService) {
     this.searchForm = this.fb.group({
       specialization: [''],
-      location: [''],
-      language: ['']
+      location: ['']
     });
     // Load initial data
     this.onSearch(); 
@@ -102,5 +103,21 @@ export class DoctorSearchComponent {
       this.currentPage--;
       this.loadDoctors();
     }
+  }
+
+  getMapOptions(doctor: any): google.maps.MapOptions {
+    return {
+      center: { lat: doctor.latitude || 0, lng: doctor.longitude || 0 },
+      zoom: 15,
+      mapTypeId: 'roadmap',
+      zoomControl: false,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false
+    };
+  }
+
+  getMarkerPosition(doctor: any): google.maps.LatLngLiteral {
+    return { lat: doctor.latitude || 0, lng: doctor.longitude || 0 };
   }
 }

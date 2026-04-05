@@ -1,33 +1,43 @@
-<nav class="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
+<nav class="fixed top-0 left-0 right-0 bg-white/70 backdrop-blur-md border-b border-gray-100 shadow-sm z-50 transition-all duration-300">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center h-20">
       ,
       <!-- Logo -->
       <div (click)="scrollTo('home')" class="flex items-center cursor-pointer">
-        <svg class="w-8 h-8 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+        <svg class="w-8 h-8 text-emerald-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
           <path clip-rule="evenodd"
             d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
             fill-rule="evenodd" />
         </svg>
-        <span class="text-2xl font-bold text-gray-900">MyDoctor</span>
+        <span class="text-2xl font-bold text-slate-900 tracking-tight">MyDoctor</span>
       </div>
 
 
       <!-- Desktop Menu -->
-      <div class="hidden md:flex items-center space-x-8">
-        <a (click)="scrollTo('home')" class="nav-link cursor-pointer">Home</a>
-        <a (click)="scrollTo('features')" class="nav-link cursor-pointer">Features</a>
-        <a (click)="scrollTo('about')" class="nav-link cursor-pointer">About</a>
-        <a routerLink="/doctors" class="nav-link cursor-pointer">Doctors</a>
-        <a (click)="scrollTo('testimonials')" class="nav-link cursor-pointer">Testimonials</a>
-        <a (click)="scrollTo('contact')" class="nav-link cursor-pointer">Contact</a>
+      <div class="hidden md:flex items-center space-x-8 font-medium">
+        <a (click)="scrollTo('home')" class="nav-link cursor-pointer hover:text-emerald-500 transition-colors">Home</a>
+        <a (click)="scrollTo('features')" class="nav-link cursor-pointer hover:text-emerald-500 transition-colors">Features</a>
+        <a (click)="scrollTo('about')" class="nav-link cursor-pointer hover:text-emerald-500 transition-colors">About</a>
+        <a routerLink="/doctors" class="nav-link cursor-pointer hover:text-emerald-500 transition-colors">Doctors</a>
+        <a (click)="scrollTo('testimonials')" class="nav-link cursor-pointer hover:text-emerald-500 transition-colors">Testimonials</a>
+        <a (click)="scrollTo('contact')" class="nav-link cursor-pointer hover:text-emerald-500 transition-colors">Contact</a>
       </div>
+
+      <!-- Language Selector -->
+      <div class="flex items-center space-x-4 border-l pl-4 ml-4">
+        <select [ngModel]="getCurrentLang()" (ngModelChange)="changeLanguage($event)" 
+          class="bg-transparent text-sm font-medium text-gray-700 focus:outline-none cursor-pointer">
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+          <option value="ar">العربية</option>
+        </select>
+      </div>
+
       <!-- CTA Buttons -->
-      <!-- CTA Buttons / Profile -->
       <div class="hidden md:flex items-center space-x-4">
         <ng-container *ngIf="(isLoggedIn$ | async) === false; else profileTpl">
-          <a class="nav-link cursor-pointer" routerLink="/login">Login</a>
-          <a class="px-6 py-2.5 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600 cursor-pointer"
+          <a class="nav-link cursor-pointer hover:text-emerald-500 transition-colors font-medium mr-2" routerLink="/login">Log In</a>
+          <a class="px-6 py-2.5 bg-emerald-500 text-white font-semibold rounded-full hover:bg-emerald-600 hover:shadow-lg transition-all cursor-pointer"
             routerLink="/register">
             Sign Up
           </a>
@@ -37,12 +47,12 @@
           <div class="relative ml-3">
             <div>
               <button (click)="toggleProfileMenu()" type="button"
-                class="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:shadow-outline"
+                class="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:shadow-outline hover:opacity-80 transition-opacity"
                 id="user-menu" aria-label="User menu" aria-haspopup="true">
-                <span class="mr-2 text-gray-700 font-medium" *ngIf="userProfile$ | async as profile">
+                <span class="mr-2 text-slate-700 font-medium" *ngIf="userProfile$ | async as profile">
                   {{ profile.firstName }}{{ profile.lastName ? ' ' + profile.lastName : '' }}
                 </span>
-                <div class="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">
+                <div class="h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold shadow-sm">
                   <span *ngIf="userProfile$ | async as profile">
                     {{ profile.firstName.charAt(0) }}{{ profile.lastName ? profile.lastName.charAt(0) : '' }}
                   </span>

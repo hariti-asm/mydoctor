@@ -2,10 +2,12 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-navigation',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslateModule, FormsModule],
   templateUrl: './navigation.component.html',
   standalone: true,
   styleUrl: './navigation.component.css'
@@ -15,9 +17,23 @@ export class NavigationComponent {
   userProfile$;
   showProfileMenu = false;
 
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    private translate: TranslateService
+  ) {
     this.isLoggedIn$ = this.authService.isLoggedIn$;
     this.userProfile$ = this.authService.userProfile$;
+  }
+
+  changeLanguage(lang: string) {
+    this.translate.use(lang);
+    const dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = dir;
+    document.documentElement.lang = lang;
+  }
+
+  getCurrentLang(): string {
+    return this.translate.currentLang || 'en';
   }
 
   scrollTo(id: string) {

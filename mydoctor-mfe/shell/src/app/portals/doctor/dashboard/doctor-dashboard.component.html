@@ -53,8 +53,10 @@
                   {{ apt.startDateTime | date:'HH:mm' }}
               </div>
               <div class="flex-1">
-                  <h4 class="font-bold text-gray-900">Patient ID #{{ apt.patientId }}</h4>
-                  <p class="text-sm text-gray-500">{{ apt.reason }}</p>
+                  <div class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold mr-4 inline-block">
+                      IN_PERSON
+                  </div>
+                  <p class="text-sm text-gray-500 mt-1">{{ apt.reason }}</p>
               </div>
               
               <!-- Missed Badge -->
@@ -62,19 +64,7 @@
                   MISSED
               </div>
 
-              <div class="px-3 py-1 rounded-full text-xs font-bold mr-4" 
-                   [ngClass]="apt.appointmentType === 'VIDEO' ? 'bg-emerald-100 text-emerald-700' : 'bg-green-100 text-green-700'">
-                  {{ apt.appointmentType }}
-              </div>
-              <button *ngIf="apt.appointmentType === 'VIDEO' && !isMissed(apt)" 
-                      (click)="joinCall(apt.id!)"
-                      class="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-xs font-bold hover:bg-green-600 hover:text-white transition-all">
-                  Join Call
-              </button>
-              <button class="ml-6 p-2 text-gray-300 group-hover:text-green-600 transition-colors">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-              </button>
-          </div>
+                 </div>
       </div>
   </section>
 </div>

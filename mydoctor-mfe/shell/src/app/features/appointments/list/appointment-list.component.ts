@@ -44,11 +44,6 @@ export class AppointmentListComponent implements OnInit {
     const startTime = new Date(apt.startDateTime);
     const diffHours = (now.getTime() - startTime.getTime()) / (1000 * 60 * 60);
 
-    if (apt.appointmentType === 'VIDEO') {
-        const expiryTime = new Date(startTime.getTime() + 4 * 60 * 60 * 1000);
-        return `This video consultation was scheduled for ${startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}. It is marked as missed because the 4-hour join window (until ${expiryTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}) has expired.`;
-    }
-    
     if (diffHours > 24) {
         return `This appointment was scheduled over 24 hours ago. It is marked as missed because it was not flagged as COMPLETED within the standard 24-hour window.`;
     }
@@ -80,21 +75,6 @@ export class AppointmentListComponent implements OnInit {
     private authService: AuthService,
     private router: Router
   ) {}
-
-  joinCall(appointmentId: number): void {
-      console.log('Joining call for appointment ID:', appointmentId);
-      this.router.navigate(['/portal/video-call', appointmentId])
-        .then(success => {
-            if (success) {
-                console.log('Navigation to video call successful');
-            } else {
-                console.error('Navigation to video call failed');
-            }
-        })
-        .catch(err => {
-            console.error('Error during navigation to video call:', err);
-        });
-  }
 
   ngOnInit(): void {
     this.authService.userProfile$.subscribe((user: any) => {

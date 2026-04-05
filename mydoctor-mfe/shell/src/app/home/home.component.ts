@@ -13,7 +13,7 @@ import { take } from 'rxjs';
 
 @Component({
   selector: 'app-home',
-  imports: [FormsModule, CtaComponent, FooterComponent, TestimonialsComponent, AboutComponent, FeaturesComponent, HeroComponent, NavigationComponent],
+  imports: [FormsModule, CtaComponent, FooterComponent, FeaturesComponent, HeroComponent, NavigationComponent, TestimonialsComponent],
   templateUrl: './home.component.html',
   standalone: true,
   styleUrl: './home.component.css'
