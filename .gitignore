@@ -38,3 +38,11 @@ build/
 node_modules/
 dist/
 *.log
+
+# Runtime & generated outputs
+docker-data/
+videos/
+mydoctor-e2e/cypress-run*.log
+mydoctor-e2e/cypress_trace*.log
+mydoctor-e2e/playwright-run*.log
+mydoctor-e2e/cypress-last-run.log
