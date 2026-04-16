@@ -31,9 +31,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Object> handleBadCredentials(BadCredentialsException ex) {
+        System.err.println("BAD CREDENTIALS EXCEPTION: " + ex.getMessage());
         Map<String, Object> body = new HashMap<>();
         body.put("message", "Invalid email or password");
         return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)

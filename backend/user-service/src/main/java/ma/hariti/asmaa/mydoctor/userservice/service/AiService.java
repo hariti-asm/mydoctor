@@ -1,90 +1,96 @@
 package ma.hariti.asmaa.mydoctor.userservice.service;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
 public class AiService {
 
+    @Value("${OPENAI_API_KEY:}")
+    private String apiKey;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
     private static final Map<String, String> SYMPTOM_SPECIALIZATION_MAP = new HashMap<>();
 
     static {
-        // Cardiologist
-        SYMPTOM_SPECIALIZATION_MAP.put("heart", "Cardiologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("chest", "Cardiologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("palpitation", "Cardiologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("pulse", "Cardiologist");
-
-        // Dermatologist
-        SYMPTOM_SPECIALIZATION_MAP.put("skin", "Dermatologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("rash", "Dermatologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("acne", "Dermatologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("itch", "Dermatologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("spot", "Dermatologist");
-
-        // Gastroenterologist
-        SYMPTOM_SPECIALIZATION_MAP.put("stomach", "Gastroenterologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("belly", "Gastroenterologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("digest", "Gastroenterologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("vomit", "Gastroenterologist");
-
-        // Ophthalmologist
-        SYMPTOM_SPECIALIZATION_MAP.put("eye", "Ophthalmologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("vision", "Ophthalmologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("blur", "Ophthalmologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("see", "Ophthalmologist");
-
-        // Dentist
+        SYMPTOM_SPECIALIZATION_MAP.put("heart", "Cardiology");
+        SYMPTOM_SPECIALIZATION_MAP.put("chest", "Cardiology");
+        SYMPTOM_SPECIALIZATION_MAP.put("skin", "Dermatology");
+        SYMPTOM_SPECIALIZATION_MAP.put("rash", "Dermatology");
+        SYMPTOM_SPECIALIZATION_MAP.put("stomach", "Gastroenterology");
+        SYMPTOM_SPECIALIZATION_MAP.put("eye", "Ophthalmology");
         SYMPTOM_SPECIALIZATION_MAP.put("tooth", "Dentist");
-        SYMPTOM_SPECIALIZATION_MAP.put("teeth", "Dentist");
-        SYMPTOM_SPECIALIZATION_MAP.put("gum", "Dentist");
-        SYMPTOM_SPECIALIZATION_MAP.put("mouth", "Dentist");
-
-        // Orthopedist
-        SYMPTOM_SPECIALIZATION_MAP.put("bone", "Orthopedist");
-        SYMPTOM_SPECIALIZATION_MAP.put("joint", "Orthopedist");
-        SYMPTOM_SPECIALIZATION_MAP.put("knee", "Orthopedist");
-        SYMPTOM_SPECIALIZATION_MAP.put("back", "Orthopedist");
-        SYMPTOM_SPECIALIZATION_MAP.put("spine", "Orthopedist");
-
-        // Pediatrician
-        SYMPTOM_SPECIALIZATION_MAP.put("child", "Pediatrician");
-        SYMPTOM_SPECIALIZATION_MAP.put("baby", "Pediatrician");
-        SYMPTOM_SPECIALIZATION_MAP.put("infant", "Pediatrician");
-
-        // Neurologist
-        SYMPTOM_SPECIALIZATION_MAP.put("nerve", "Neurologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("brain", "Neurologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("headache", "Neurologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("dizzy", "Neurologist");
-        SYMPTOM_SPECIALIZATION_MAP.put("migraine", "Neurologist");
-
-        // ENT
+        SYMPTOM_SPECIALIZATION_MAP.put("bone", "Orthopedics");
+        SYMPTOM_SPECIALIZATION_MAP.put("child", "Pediatrics");
+        SYMPTOM_SPECIALIZATION_MAP.put("brain", "Neurology");
         SYMPTOM_SPECIALIZATION_MAP.put("ear", "ENT");
-        SYMPTOM_SPECIALIZATION_MAP.put("nose", "ENT");
-        SYMPTOM_SPECIALIZATION_MAP.put("throat", "ENT");
-        SYMPTOM_SPECIALIZATION_MAP.put("sinus", "ENT");
     }
 
     public String recommendSpecialist(String symptoms) {
-        System.out.println("AI Service received symptoms: " + symptoms); // Debug log
-
         if (symptoms == null || symptoms.trim().isEmpty()) {
-            return "General Practitioner";
+            return "General Medicine";
         }
 
-        String lowerSymptoms = symptoms.toLowerCase();
-
-        for (Map.Entry<String, String> entry : SYMPTOM_SPECIALIZATION_MAP.entrySet()) {
-            if (lowerSymptoms.contains(entry.getKey())) {
-                System.out.println("Matched keyword: " + entry.getKey() + " -> " + entry.getValue());
-                return entry.getValue();
+        if (apiKey != null && !apiKey.isEmpty() && !apiKey.startsWith("sk-proj-YOUR")) {
+            try {
+                return callOpenAi(symptoms);
+            } catch (Exception e) {
+                System.err.println("OpenAI call failed, falling back to keywords: " + e.getMessage());
             }
         }
 
-        System.out.println("No match found, defaulting to GP");
+        return fallbackRecommend(symptoms);
+    }
+
+    private String callOpenAi(String symptoms) {
+        String url = "https://api.openai.com/v1/chat/completions";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "gpt-4o-mini");
+        requestBody.put("messages", List.of(
+            Map.of("role", "system", "content", "You are a medical routing assistant. Based on the user's symptoms, suggest the single most relevant medical specialty from this list: Cardiology, Dermatology, Gastroenterology, Ophthalmology, Dentist, Orthopedics, Pediatrics, Neurology, ENT, General Medicine. Reply ONLY with the name of the specialty."),
+            Map.of("role", "user", "content", symptoms)
+        ));
+        requestBody.put("max_tokens", 50);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+        try {
+            Map<String, Object> response = restTemplate.postForObject(url, entity, Map.class);
+            if (response != null && response.containsKey("choices")) {
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+                if (!choices.isEmpty()) {
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    return (String) message.get("content");
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error calling OpenAI API", e);
+        }
+
+        return "General Medicine";
+    }
+
+    private String fallbackRecommend(String symptoms) {
+        String lowerSymptoms = symptoms.toLowerCase();
+        for (Map.Entry<String, String> entry : SYMPTOM_SPECIALIZATION_MAP.entrySet()) {
+            if (lowerSymptoms.contains(entry.getKey())) {
+                return entry.getValue();
+            }
+        }
         return "General Practitioner";
     }
 }

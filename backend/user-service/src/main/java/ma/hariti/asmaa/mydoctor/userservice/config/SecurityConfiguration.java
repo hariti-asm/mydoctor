@@ -50,7 +50,7 @@ public class SecurityConfiguration {
                                                                 "/ws/**",
                                                                 "/error")
                                                 .permitAll()
-                                                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                                                .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
                                                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**")
                                                 .permitAll()
                                                 .anyRequest().authenticated())
@@ -66,10 +66,25 @@ public class SecurityConfiguration {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", frontendUrl));
+                
+                // Set default allowed origin
+                configuration.addAllowedOrigin("http://localhost:4200");
+                
+                // Add origins from frontendUrl (handles potentially comma-separated string)
+                if (frontendUrl != null && !frontendUrl.isEmpty()) {
+                        String[] origins = frontendUrl.split(",");
+                        for (String origin : origins) {
+                                String trimmedOrigin = origin.trim();
+                                if (!trimmedOrigin.isEmpty() && !trimmedOrigin.equals("http://localhost:4200")) {
+                                        configuration.addAllowedOrigin(trimmedOrigin);
+                                        System.out.println("CORS: Added allowed origin: " + trimmedOrigin);
+                                }
+                        }
+                }
+
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-                configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token"));
-                configuration.setExposedHeaders(Arrays.asList("X-Auth-Token"));
+                configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Origin", "Accept", "X-Requested-With"));
+                configuration.setExposedHeaders(Arrays.asList("Authorization"));
                 configuration.setAllowCredentials(true);
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/**", configuration);

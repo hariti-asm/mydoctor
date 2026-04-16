@@ -23,6 +23,8 @@ public class MedicalRecord {
     private String notes;
     private String recordingUrl;
     private String aiNotes;
+    private String transcript;
+    private String summary;
     private java.util.List<String> attachments;
     private String transcriptionJobName;
 }

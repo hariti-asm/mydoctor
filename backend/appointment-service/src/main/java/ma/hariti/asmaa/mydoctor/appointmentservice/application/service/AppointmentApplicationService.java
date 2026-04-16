@@ -11,12 +11,79 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class AppointmentApplicationService {
     private final ma.hariti.asmaa.mydoctor.appointmentservice.domain.ports.AppointmentRepository appointmentRepository;
+    private final org.springframework.web.client.RestTemplate restTemplate;
+
+    @org.springframework.beans.factory.annotation.Value("${services.user.url:http://user-service:8081}")
+    private String userServiceUrl;
 
     public Appointment createAppointment(Appointment appointment) {
         appointment.setStatus("PENDING");
-        return appointmentRepository.save(appointment);
+        
+        // Generate meeting link for VIDEO consultations
+        if ("VIDEO".equalsIgnoreCase(appointment.getAppointmentType())) {
+            String meetingId = "mydoctor-" + java.util.UUID.randomUUID().toString().substring(0, 8);
+            appointment.setMeetingLink("https://meet.jit.si/" + meetingId);
+        }
+
+        Appointment saved = appointmentRepository.save(appointment);
+        
+        // Trigger notification asynchronously (simulated by non-blocking call if possible, but RestTemplate is blocking)
+        try {
+            sendAppointmentNotification(saved);
+        } catch (Exception e) {
+            log.error("Failed to send appointment notification for ID {}: {}", saved.getId(), e.getMessage());
+        }
+        
+        return saved;
+    }
+
+    private void sendAppointmentNotification(Appointment appointment) {
+        try {
+            log.info("Starting notification flow for appointment ID: {}. Patient: {}, Doctor: {}", 
+                appointment.getId(), appointment.getPatientId(), appointment.getDoctorId());
+            
+            // Fetch Patient and Doctor profiles
+            // Note: userServiceUrl already contains /api/v1 from docker-compose
+            String patientUrl = userServiceUrl + "/users/" + appointment.getPatientId();
+            String doctorUrl = userServiceUrl + "/users/" + appointment.getDoctorId();
+            
+            log.info("Fetching patient from: {}", patientUrl);
+            UserProfileResponse patient = restTemplate.getForObject(patientUrl, UserProfileResponse.class);
+            
+            log.info("Fetching doctor from: {}", doctorUrl);
+            UserProfileResponse doctor = restTemplate.getForObject(doctorUrl, UserProfileResponse.class);
+
+            if (patient == null || doctor == null) {
+                log.warn("Could not fetch profiles for notification. Patient: {}, Doctor: {}", patient, doctor);
+                return;
+            }
+
+            DateTimeFormatter dateGetter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter timeGetter = DateTimeFormatter.ofPattern("HH:mm");
+
+            // Notify Patient
+            AppointmentNotificationRequest patientReq = AppointmentNotificationRequest.builder()
+                    .to(patient.getEmail())
+                    .recipientName(patient.getFirstName())
+                    .patientName(patient.getFirstName() + " " + patient.getLastName())
+                    .doctorName(doctor.getFirstName() + " " + doctor.getLastName())
+                    .appointmentDate(appointment.getStartDateTime().format(dateGetter))
+                    .appointmentTime(appointment.getStartDateTime().format(timeGetter))
+                    .meetingLink(appointment.getMeetingLink())
+                    .build();
+
+            String notifyUrl = userServiceUrl + "/notifications/appointment";
+            log.info("Sending notification to: {}", notifyUrl);
+            restTemplate.postForEntity(notifyUrl, patientReq, Void.class);
+            log.info("Notification sent successfully to patient: {}", patient.getEmail());
+
+        } catch (Exception e) {
+            log.error("Error in notification flow for appointment {}: {}", appointment.getId(), e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public List<Appointment> getAppointmentsByDoctor(Long doctorId) {

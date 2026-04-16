@@ -26,4 +26,5 @@ public interface AuthService {
     UserProfileResponse updateUserProfile(String email, UpdateProfileRequest request);
 
     UserProfileResponse getUserProfileById(Long id);
+    java.util.List<ma.hariti.asmaa.mydoctor.userservice.entity.User> getAllUsersDebug();
 }

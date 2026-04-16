@@ -22,6 +22,7 @@ public class Appointment {
     private String appointmentType;
     private String reason;
     private String notes;
+    private String meetingLink;
 
     public boolean isUpcoming() {
         return startDateTime != null && startDateTime.isAfter(LocalDateTime.now());

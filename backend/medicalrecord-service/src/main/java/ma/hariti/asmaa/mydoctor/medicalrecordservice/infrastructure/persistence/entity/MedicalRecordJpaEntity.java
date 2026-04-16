@@ -32,6 +32,10 @@ public class MedicalRecordJpaEntity {
     private String notes;
     private String recordingUrl;
     private String aiNotes;
+    @jakarta.persistence.Column(length = 5000)
+    private String transcript;
+    @jakarta.persistence.Column(length = 2000)
+    private String summary;
     
     @jakarta.persistence.ElementCollection
     private java.util.List<String> attachments;

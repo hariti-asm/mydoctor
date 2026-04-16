@@ -57,9 +57,18 @@ public class AuthServiceDefault implements AuthService {
 
     @Override
     public AuthResponse login(@Valid LoginRequest request) {
+        String email = request.getEmail().toLowerCase().trim();
+        log.info("Login attempt for email: {}", email);
+        
+        // Diagnostic check: verify user exists and check password match manually for logging
+        userRepository.findByEmail(email).ifPresent(u -> {
+            boolean matches = passwordEncoder.matches(request.getPassword(), u.getPassword());
+            log.info("DIAGNOSTIC: User found. Passwords match: {}. Hash length: {}", matches, u.getPassword().length());
+        });
+
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+                    new UsernamePasswordAuthenticationToken(email, request.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -78,11 +87,11 @@ public class AuthServiceDefault implements AuthService {
                     .user(userMapper.toResponse(user))
                     .build();
         } catch (AuthenticationException e) {
-            log.error("Login failed for user {}: {}", request.getEmail(), e.getMessage());
+            log.error("AUTHENTICATION FAILED for user {}: {}", request.getEmail(), e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("Login failed for user {}: {}", request.getEmail(), e.getMessage());
-            throw new RuntimeException("Login failed: " + e.getMessage());
+            log.error("UNEXPECTED ERROR during login for user {}: {}", request.getEmail(), e.getMessage(), e);
+            throw new RuntimeException("Login failed due to an unexpected error");
         }
     }
 
@@ -168,40 +177,46 @@ public class AuthServiceDefault implements AuthService {
     }
 
     @Override
+    @Transactional
     public void registerUser(@Valid RegisterUserRequest request) {
         try {
-            if (userRepository.existsByEmail(request.getEmail())) {
+            String email = request.getEmail().toLowerCase().trim();
+            log.info("Attempting to register user: {}", email);
+            if (userRepository.existsByEmail(email)) {
+                log.warn("Registration failed: Email {} already exists", email);
                 throw new IllegalArgumentException("Email already exists");
             }
 
-            boolean isFirstUser = userRepository.count() == 0;
+            boolean isDatabaseEmpty = userRepository.count() == 0;
 
-            if (!isFirstUser) {
-                if (request.getRole() == Role.ADMIN) {
-                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                    if (authentication == null || !authentication.isAuthenticated()) {
-                        throw new IllegalStateException("Only authenticated admins can create new admins");
-                    }
-                }
-            } else {
+            if (isDatabaseEmpty) {
+                log.info("First user detected. Assigning ADMIN role to {}", request.getEmail());
                 request.setRole(Role.ADMIN);
+            } else if (request.getRole() == Role.ADMIN) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication == null || !authentication.isAuthenticated() || 
+                    !authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ADMIN"))) {
+                    log.error("Unauthorized attempt to create ADMIN user by: {}", 
+                        authentication != null ? authentication.getName() : "anonymous");
+                    throw new IllegalStateException("Only authenticated admins can create new admins");
+                }
             }
 
             User user = createUserByRole(request);
+            user.setEmail(email);
             user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-            User savedUser = userRepository.save(user);
-            userRepository.flush();
+            User savedUser = userRepository.saveAndFlush(user);
+            log.info("DATABASE SAVED successfully for: {}. ID: {}, Role: {}", savedUser.getEmail(), savedUser.getId(), savedUser.getRole());
 
-            log.info("Created new user with role {} and email {}", request.getRole(), request.getEmail());
-
+            // 5. Send welcome email (Non-blocking and non-transaction-critical)
             try {
                 emailService.sendWelcomeEmail(savedUser.getEmail(), request.getPassword());
             } catch (Exception e) {
                 log.error("Failed to send welcome email to {}: {}", request.getEmail(), e.getMessage());
             }
         } catch (Exception e) {
-            log.error("Failed to register user {}: {}", request.getEmail(), e.getMessage());
+            log.error("Registration failed for user {}: {}", request.getEmail(), e.getMessage());
             throw e;
         }
     }
@@ -401,8 +416,22 @@ public class AuthServiceDefault implements AuthService {
 
     @Override
     public UserProfileResponse getUserProfileById(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-        return getUserProfile(user.getEmail());
+        // Use a more resilient lookup to handle potential ID collisions during migration
+        java.util.List<User> users = userRepository.findAllById(java.util.Collections.singleton(id));
+        
+        if (users.isEmpty()) {
+            throw new ResourceNotFoundException("User not found with id: " + id);
+        }
+        
+        if (users.size() > 1) {
+            log.warn("ID COLLISION DETECTED: Found {} users for ID {}. Picking the first one. Please resolve database inconsistency.", users.size(), id);
+        }
+        
+        return getUserProfile(users.get(0).getEmail());
+    }
+
+    @Override
+    public java.util.List<User> getAllUsersDebug() {
+        return userRepository.findAll();
     }
 }

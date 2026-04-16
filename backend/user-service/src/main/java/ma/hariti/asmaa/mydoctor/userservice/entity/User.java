@@ -20,11 +20,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@Inheritance(strategy = InheritanceType.JOINED)
 public class User implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO) // Use AUTO for TABLE_PER_CLASS
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_gen")
+    @SequenceGenerator(name = "user_gen", sequenceName = "user_seq", allocationSize = 1)
     private Long id;
 
     private String name;

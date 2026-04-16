@@ -124,4 +124,9 @@ public class AuthController {
         UserProfileResponse userProfile = authService.getUserProfile(email);
         return ResponseEntity.ok(userProfile);
     }
+
+    @GetMapping("/debug/users")
+    public ResponseEntity<?> getAllUsersDebug() {
+        return ResponseEntity.ok(authService.getAllUsersDebug());
+    }
 }

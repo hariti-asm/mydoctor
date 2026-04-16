@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import ma.hariti.asmaa.mydoctor.doctorservice.application.service.ReviewApplicationService;
+import ma.hariti.asmaa.mydoctor.doctorservice.domain.model.Review;
 
 @RestController
 @RequestMapping("/api/v1/doctors")
@@ -21,6 +23,7 @@ import java.util.List;
 public class DoctorController {
 
     private final DoctorApplicationService doctorService;
+    private final ReviewApplicationService reviewService;
 
     @PostMapping
     public ResponseEntity<Doctor> createDoctor(@RequestBody Doctor doctor) {
@@ -41,5 +44,15 @@ public class DoctorController {
     @GetMapping("/{id}")
     public ResponseEntity<Doctor> getDoctorById(@PathVariable Long id) {
         return ResponseEntity.ok(doctorService.getDoctor(id));
+    }
+
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<List<Review>> getDoctorReviews(@PathVariable Long id) {
+        return ResponseEntity.ok(reviewService.getReviewsByDoctorId(id));
+    }
+
+    @PostMapping("/{id}/reviews")
+    public ResponseEntity<Review> addDoctorReview(@PathVariable Long id, @RequestBody Review review) {
+        return ResponseEntity.ok(reviewService.addReview(id, review));
     }
 }

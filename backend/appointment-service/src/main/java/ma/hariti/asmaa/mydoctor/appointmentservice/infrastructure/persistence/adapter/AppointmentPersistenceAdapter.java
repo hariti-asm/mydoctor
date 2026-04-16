@@ -56,6 +56,7 @@ public class AppointmentPersistenceAdapter implements AppointmentRepository {
                 .appointmentType(appointment.getAppointmentType())
                 .reason(appointment.getReason())
                 .notes(appointment.getNotes())
+                .meetingLink(appointment.getMeetingLink())
                 .build();
     }
 
@@ -70,6 +71,7 @@ public class AppointmentPersistenceAdapter implements AppointmentRepository {
                 .appointmentType(entity.getAppointmentType())
                 .reason(entity.getReason())
                 .notes(entity.getNotes())
+                .meetingLink(entity.getMeetingLink())
                 .build();
     }
 }

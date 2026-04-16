@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import ma.hariti.asmaa.mydoctor.userservice.entity.enums.Role;
 
 @Entity
-@DiscriminatorValue("ADMIN")
 @NoArgsConstructor
 @lombok.experimental.SuperBuilder
 public class Admin extends User {

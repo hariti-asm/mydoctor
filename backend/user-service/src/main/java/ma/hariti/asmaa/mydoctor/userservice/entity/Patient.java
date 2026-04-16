@@ -7,7 +7,6 @@ import lombok.experimental.SuperBuilder;
 import ma.hariti.asmaa.mydoctor.userservice.entity.enums.Role;
 
 @Entity
-@DiscriminatorValue("PATIENT")
 @NoArgsConstructor
 @SuperBuilder
 public class Patient extends User {

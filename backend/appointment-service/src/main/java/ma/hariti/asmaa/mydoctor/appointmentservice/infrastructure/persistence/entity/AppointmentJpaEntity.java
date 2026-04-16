@@ -29,4 +29,5 @@ public class AppointmentJpaEntity {
     private String reason;
     @Column(length = 2000)
     private String notes;
+    private String meetingLink;
 }

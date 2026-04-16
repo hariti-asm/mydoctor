@@ -62,6 +62,8 @@ public class MedicalRecordPersistenceAdapter implements MedicalRecordRepository 
                 .notes(record.getNotes())
                 .recordingUrl(record.getRecordingUrl())
                 .aiNotes(record.getAiNotes())
+                .transcript(record.getTranscript())
+                .summary(record.getSummary())
                 .attachments(record.getAttachments())
                 .transcriptionJobName(record.getTranscriptionJobName())
                 .build();
@@ -79,6 +81,8 @@ public class MedicalRecordPersistenceAdapter implements MedicalRecordRepository 
                 .notes(entity.getNotes())
                 .recordingUrl(entity.getRecordingUrl())
                 .aiNotes(entity.getAiNotes())
+                .transcript(entity.getTranscript())
+                .summary(entity.getSummary())
                 .attachments(entity.getAttachments())
                 .transcriptionJobName(entity.getTranscriptionJobName())
                 .build();

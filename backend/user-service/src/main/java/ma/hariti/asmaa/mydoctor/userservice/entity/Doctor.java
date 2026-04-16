@@ -10,7 +10,6 @@ import lombok.experimental.SuperBuilder;
 import java.util.List;
 
 @Entity
-@DiscriminatorValue("DOCTOR")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor

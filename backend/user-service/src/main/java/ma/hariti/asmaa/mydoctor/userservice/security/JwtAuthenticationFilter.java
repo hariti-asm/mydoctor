@@ -31,13 +31,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
-        System.out.println(
-                "JwtAuthenticationFilter: Processing request: " + request.getMethod() + " " + request.getRequestURI());
+        String requestPath = request.getRequestURI();
+        String method = request.getMethod();
+        
+        System.out.println("PRE-FILTER: " + method + " " + requestPath);
+
+        // Early exit: Don't process JWT for public endpoints or OPTIONS preflight
+        boolean isPublicAuth = requestPath.endsWith("/login") || 
+                              requestPath.endsWith("/register") || 
+                              requestPath.endsWith("/forgot-password") || 
+                              requestPath.endsWith("/reset-password");
+
+        if (method.equalsIgnoreCase("OPTIONS") || isPublicAuth) {
+            System.out.println("JwtAuthenticationFilter: Skipping for " + requestPath);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String userEmail;
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("JwtAuthenticationFilter: No Bearer token found in header");
+            System.out.println("JwtAuthenticationFilter: No valid Bearer token for " + requestPath);
             filterChain.doFilter(request, response);
             return;
         }
