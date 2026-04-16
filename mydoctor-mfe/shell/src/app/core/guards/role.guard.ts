@@ -12,11 +12,23 @@ export const roleGuard: CanActivateFn = (route, state) => {
   return authService.waitForProfile().pipe(
     take(1),
     map(profile => {
-      if (expectedRoles.includes(profile.role)) {
+      const getRoleString = (role: any): string => {
+        if (!role) return '';
+        if (typeof role === 'string') return role;
+        return role.name || role.code || role.toString();
+      };
+
+      const userRole = getRoleString(profile?.role).toUpperCase();
+      const normalizedExpectedRoles = expectedRoles.map(r => r.toUpperCase());
+      
+      console.log('RoleGuard: checking access', { expectedRoles: normalizedExpectedRoles, userRole });
+      
+      if (profile && userRole && normalizedExpectedRoles.includes(userRole)) {
         return true;
       }
 
-      router.navigate(['/']); // Or access-denied
+      console.warn('RoleGuard: Access denied. Redirecting to home.', { expectedRoles: normalizedExpectedRoles, userRole });
+      router.navigate(['/']); 
       return false;
     })
   );

@@ -32,10 +32,13 @@ export class HomeComponent implements OnInit {
 
   private redirectByRole(): void {
     this.authService.waitForProfile().pipe(take(1)).subscribe(profile => {
-      if (profile.role === 'DOCTOR') {
+      const role = (profile?.role || '').toString().toUpperCase();
+      if (role === 'DOCTOR') {
         this.router.navigate(['/portal/doctor/dashboard']);
-      } else if (profile.role === 'PATIENT') {
+      } else if (role === 'PATIENT') {
         this.router.navigate(['/portal/patient/dashboard']);
+      } else if (role === 'ADMIN') {
+        this.router.navigate(['/portal/admin/dashboard']);
       }
     });
   }

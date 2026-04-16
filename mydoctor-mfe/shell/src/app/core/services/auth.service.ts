@@ -1,4 +1,4 @@
-import { BehaviorSubject, catchError, filter, map, Observable, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, filter, map, Observable, tap, throwError, timeout } from 'rxjs';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Auth } from '../models/auth.model';
@@ -40,6 +40,7 @@ export class AuthService {
   // Login
   login(email: string, password: string, rememberMe = false): Observable<AuthResponse | null> {
     const loginRequest: LoginRequest = { email, password, rememberMe };
+    this.userProfileSubject.next(null);
 
     return this.http.post<ApiResponse<AuthResponse>>(`${this.apiUrl}/login`, loginRequest)
       .pipe(
@@ -175,7 +176,12 @@ export class AuthService {
    */
   waitForProfile(): Observable<UserProfileResponse> {
     return this.userProfile$.pipe(
-      filter((profile): profile is UserProfileResponse => !!profile)
+      filter((profile): profile is UserProfileResponse => !!profile),
+      timeout(15000), // Avoid infinite hangs in guards
+      catchError(err => {
+        console.error('Profile wait timed out or failed', err);
+        return throwError(() => new Error('Profile not loaded'));
+      })
     );
   }
 
@@ -207,7 +213,14 @@ export class AuthService {
   getUserName(): string | null {
     const profile = this.userProfileSubject.value;
     if (!profile) return null;
-    return profile.lastName ? `${profile.firstName} ${profile.lastName}` : profile.firstName;
+    const name = profile.lastName ? `${profile.firstName} ${profile.lastName}` : profile.firstName;
+    return `${name} (${this.getRoleString(profile.role)})`;
+  }
+
+  private getRoleString(role: any): string {
+    if (!role) return '';
+    if (typeof role === 'string') return role;
+    return role.name || role.code || JSON.stringify(role);
   }
 
   getUserEmail(): string | null {

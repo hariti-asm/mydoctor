@@ -8,6 +8,7 @@ export interface Appointment {
   appointmentType: 'IN_PERSON' | 'VIDEO';
   reason: string;
   notes?: string;
+  meetingLink?: string;
   doctorName?: string; // Optional for UI convenience if we merge data
 }
 

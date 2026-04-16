@@ -37,7 +37,19 @@ export class AppointmentService {
     return this.http.put<Appointment>(`${this.apiUrl}/${id}/complete`, {});
   }
 
+  confirmAppointment(id: number): Observable<Appointment> {
+    return this.http.put<Appointment>(`${this.apiUrl}/${id}/confirm`, {});
+  }
+
+  cancelAppointment(id: number): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}/cancel`, {});
+  }
+
   getAvailableSlots(doctorId: number, date: string): Observable<string[]> {
       return this.http.get<string[]>(`${this.apiUrl}/available-slots`, { params: { doctorId: doctorId.toString(), date } });
+  }
+
+  getAppointmentById(id: number): Observable<Appointment> {
+    return this.http.get<Appointment>(`${this.apiUrl}/${id}`);
   }
 }

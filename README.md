@@ -24,6 +24,17 @@ The platform implements a sophisticated, asynchronous pipeline for processing me
 
 ## 📊 Application Workflow & Diagrams
 
+### 🎥 Application Demonstration
+
+*(Drop your screen recording file here once the server capacity issue resolves or after manual recording. For example: `![Application Walkthrough](./demo.mp4)`)*
+
+The complete end-to-end patient workflow demonstrating:
+1. **Authentication:** Secure patient login.
+2. **AI Symptom Checker:** Interacting with "My AI Agent" to analyze patient symptoms.
+3. **Doctor Search & Booking:** Reserving appointments with both **Standard** and **Video Consultation** options.
+4. **Patient Dashboard:** Verifying the newly booked reservations directly from the patient’s personalized view.
+
+
 ### Use Case Diagram
 
 Describes the interactions between users and the core system functionalities.

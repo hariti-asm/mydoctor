@@ -1,86 +1,226 @@
-<div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-  <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
-    <div *ngIf="!showPayment">
-      <div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Book an Appointment
-        </h2>
-        <p class="mt-2 text-center text-sm text-gray-600">
-          Select a date and time to see your doctor.
-        </p>
-      </div>
-      <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
-        <input type="hidden" name="remember" value="true">
-        
-        <div class="rounded-md shadow-sm -space-y-px">
-          <div class="mb-6">
-            <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Select Date</label>
-            <input formControlName="date" id="date" type="date" [min]="minDate" required
-              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
-          </div>
-
-          <div *ngIf="bookingForm.get('date')?.value" class="mb-6">
-               <label class="block text-sm font-medium text-gray-700 mb-2">Available Time Slots</label>
-               
-               <div *ngIf="loadingSlots" class="text-sm text-gray-500">Loading slots...</div>
-               
-               <div *ngIf="!loadingSlots && availableSlots.length === 0" class="text-sm text-red-500">
-                   No slots available for this date.
-               </div>
-
-               <div class="grid grid-cols-3 gap-3">
-                   <button type="button" *ngFor="let slot of availableSlots" 
-                      (click)="selectSlot(slot)"
-                      [class.bg-green-600]="selectedSlot === slot"
-                      [class.text-white]="selectedSlot === slot"
-                      [class.bg-white]="selectedSlot !== slot"
-                      [class.text-gray-700]="selectedSlot !== slot"
-                      class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium hover:bg-green-50 hover:border-green-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
-                       {{ slot }}
-                   </button>
-               </div>
-               <div *ngIf="selectedSlot" class="mt-2 text-sm text-green-600 font-semibold">
-                   Selected: {{ selectedSlot }}
-               </div>
-          </div>
-          
-          <div>
-            <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Reason for Visit</label>
-            <textarea formControlName="reason" id="reason" rows="4" required
-              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-              placeholder="Describe your symptoms..."></textarea>
-          </div>
-          
-          <div class="flex items-center mt-4">
-            <input id="video-call" type="checkbox" formControlName="isVideoCall" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
-            <label for="video-call" class="ml-2 block text-sm text-gray-900">
-              Request Video Consultation
-            </label>
+<div class="min-h-screen bg-gray-50 flex items-start justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8">
+    
+    <!-- Left Column: Doctor Details, Map, and Reviews -->
+    <div class="space-y-6">
+      <!-- Doctor Profile Card -->
+      <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex items-center space-x-6">
+        <div *ngIf="doctorLoading" class="animate-pulse flex space-x-4 w-full">
+          <div class="rounded-full bg-gray-200 h-24 w-24"></div>
+          <div class="flex-1 space-y-4 py-1">
+            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div class="space-y-2">
+              <div class="h-4 bg-gray-200 rounded"></div>
+              <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+            </div>
           </div>
         </div>
+        
+        <ng-container *ngIf="!doctorLoading && selectedDoctor">
+          <div class="flex-shrink-0 relative">
+            <img [src]="getDiceBearAvatar()" alt="Doctor Avatar" class="h-24 w-24 rounded-full object-cover border-4 border-white shadow-md bg-white">
+          </div>
+          <div class="flex-1">
+            <h2 class="text-2xl font-bold text-gray-900">Dr. {{ selectedDoctor.firstName }} {{ selectedDoctor.lastName }}</h2>
+            <p class="text-green-600 font-semibold text-lg">{{ selectedDoctor.speciality }}</p>
+            <div class="flex items-center mt-2 text-sm text-gray-500">
+               <svg class="h-4 w-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+               </svg>
+               <span class="font-medium text-gray-700">{{ selectedDoctor.rating || '4.8' }}</span> (124 reviews)
+            </div>
+            <p class="text-gray-600 mt-2 text-sm flex items-start">
+               <svg class="w-5 h-5 mr-1 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+               </svg>
+               <span>{{ selectedDoctor.address }}<br>{{ selectedDoctor.city }}</span>
+            </p>
+          </div>
+        </ng-container>
+      </div>
 
-        <div>
-          <button type="submit" [disabled]="bookingForm.invalid || !selectedSlot || loading"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-colors">
-            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-              <svg *ngIf="!loading" class="h-5 w-5 text-green-500 group-hover:text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-              </svg>
-              <svg *ngIf="loading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <!-- Location Map widget -->
+      <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden" *ngIf="!doctorLoading && selectedDoctor">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+          <h3 class="text-lg font-semibold text-gray-900">Exact Location</h3>
+        </div>
+          <div class="mt-6 rounded-xl overflow-hidden shadow-lg border border-slate-200">
+            <div id="map" style="height: 300px; width: 100%;" class="z-0"></div>
+          </div>
+      </div>
+
+      <!-- Patient Comments/Reviews -->
+      <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Patient Reviews</h3>
+        
+        <!-- Add Review Form -->
+        <form [formGroup]="reviewForm" (ngSubmit)="onSubmitReview()" class="mb-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
+           <h4 class="text-sm font-medium text-gray-700 mb-3">Leave a Review</h4>
+           <div class="mb-3">
+              <label class="block text-xs text-gray-500 mb-1">Rating</label>
+              <select formControlName="rating" class="block w-full text-sm border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+                 <option [value]="5">5 - Excellent</option>
+                 <option [value]="4">4 - Good</option>
+                 <option [value]="3">3 - Average</option>
+                 <option [value]="2">2 - Fair</option>
+                 <option [value]="1">1 - Poor</option>
+              </select>
+           </div>
+           <div class="mb-3">
+              <label class="block text-xs text-gray-500 mb-1">Comment</label>
+              <textarea formControlName="text" rows="2" class="block w-full text-sm border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500" placeholder="Share your experience..."></textarea>
+           </div>
+           
+           <div *ngIf="reviewError" class="text-xs text-red-500 mb-2">{{ reviewError }}</div>
+
+           <button type="submit" [disabled]="reviewForm.invalid || submittingReview" class="inline-flex justify-center py-1.5 px-3 border border-transparent text-sm font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none disabled:opacity-50 transition-colors">
+              <svg *ngIf="submittingReview" class="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-            </span>
-            Confirm Booking
-          </button>
-        </div>
+              Submit Review
+           </button>
+        </form>
+
+        <div *ngIf="loadingReviews" class="text-sm text-gray-500 text-center py-4">Loading reviews...</div>
         
-        <div *ngIf="error" class="text-red-600 text-sm text-center">
-          {{ error }}
+        <div *ngIf="!loadingReviews && reviews.length === 0" class="text-sm text-gray-500 italic text-center py-4">
+           No reviews yet. Be the first to leave one!
         </div>
-      </form>
+
+        <div class="space-y-6" *ngIf="!loadingReviews && reviews.length > 0">
+          <div *ngFor="let comment of reviews" class="border-b border-gray-50 pb-4 last:border-0 last:pb-0">
+            <div class="flex justify-between items-start mb-2">
+              <span class="font-semibold text-sm text-gray-800">{{ comment.author }}</span>
+              <span class="text-xs text-gray-400">{{ comment.date }}</span>
+            </div>
+            <div class="flex text-yellow-400 text-sm mb-2">
+              <svg *ngFor="let i of [1,2,3,4,5]" [class.text-yellow-400]="i <= comment.rating" [class.text-gray-200]="i > comment.rating" class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            </div>
+            <p class="text-sm text-gray-600 italic">"{{ comment.text }}"</p>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Payment Bypassed -->
+    <!-- Right Column: Booking Form -->
+    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 h-fit sticky top-8">
+      <div *ngIf="!showPayment">
+        <div>
+          <h2 class="text-2xl font-extrabold text-gray-900 border-b border-gray-100 pb-4 mb-6">
+            Book Appointment
+          </h2>
+        </div>
+        <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <input type="hidden" name="remember" value="true">
+          
+          <div class="rounded-md shadow-sm space-y-4">
+            <div>
+              <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Select Date</label>
+              <input formControlName="date" id="date" type="date" [min]="minDate" required
+                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+            </div>
+
+            <div *ngIf="bookingForm.get('date')?.value" class="pt-2">
+                 <label class="block text-sm font-medium text-gray-700 mb-2">Available Time Slots</label>
+                 
+                 <div *ngIf="loadingSlots" class="text-sm text-gray-500 flex items-center">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Loading slots...
+                 </div>
+                 
+                 <div *ngIf="!loadingSlots && availableSlots.length === 0" class="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                     No slots available for this date. Please choose another date.
+                 </div>
+
+                 <div class="grid grid-cols-3 gap-3">
+                     <button type="button" *ngFor="let slot of availableSlots" 
+                        (click)="selectSlot(slot)"
+                        [class.bg-green-600]="selectedSlot === slot"
+                        [class.text-white]="selectedSlot === slot"
+                        [class.bg-gray-50]="selectedSlot !== slot"
+                        [class.text-gray-700]="selectedSlot !== slot"
+                        class="px-4 py-3 border border-gray-200 rounded-lg text-sm font-semibold hover:bg-green-50 hover:border-green-500 focus:outline-none transition-all shadow-sm">
+                         {{ slot }}
+                     </button>
+                 </div>
+            </div>
+            
+            <div class="pt-2">
+              <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Reason for Visit</label>
+              <textarea formControlName="reason" id="reason" rows="3" required
+                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                placeholder="Describe your symptoms..."></textarea>
+            </div>
+            
+            <div class="flex items-center py-2">
+              <input id="video-call" type="checkbox" formControlName="isVideoCall" class="h-5 w-5 text-green-600 focus:ring-green-500 border-gray-300 rounded cursor-pointer">
+              <label for="video-call" class="ml-3 block text-sm font-medium text-gray-700 cursor-pointer">
+                Request Video Consultation
+              </label>
+            </div>
+          </div>
+
+          <div class="pt-4">
+            <button type="submit" [disabled]="bookingForm.invalid || !selectedSlot || loading"
+              class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg">
+              <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                <svg *ngIf="!loading" class="h-5 w-5 text-green-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                <svg *ngIf="loading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </span>
+              Confirm Appointment
+            </button>
+          </div>
+          
+          <div *ngIf="error" class="bg-red-50 text-red-700 p-4 rounded-lg text-sm text-center font-medium border border-red-100">
+            {{ error }}
+          </div>
+        </form>
+      </div>
+
+      <!-- Payment Section (Premium Demo UI) -->
+      <div *ngIf="showPayment" class="animate-fade-in">
+        <div class="border-b border-gray-100 pb-4 mb-6">
+          <h2 class="text-2xl font-extrabold text-gray-900 flex items-center">
+            <svg class="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            Payment Secured
+          </h2>
+          <p class="text-sm text-gray-500 mt-1">Pay with Stripe for your consultation</p>
+        </div>
+
+        <div class="space-y-6">
+          <div class="bg-gray-50 p-4 rounded-lg flex justify-between items-center border border-gray-100">
+            <div>
+              <p class="text-sm font-medium text-gray-700">Consultation Fee</p>
+              <p class="text-xs text-gray-400">Fixed rate for Dr. {{ selectedDoctor?.lastName }}</p>
+            </div>
+            <span class="text-xl font-bold text-gray-900">${{ selectedDoctor?.consultationFee || '80.00' }}</span>
+          </div>
+
+            <!-- Actual Stripe component replaces mockup buttons -->
+            <app-stripe-payment [clientSecret]="'mock_secret_booking_' + newBookingId" 
+                               (paymentSuccess)="onPaymentSuccess($event)"
+                               (paymentError)="onPaymentError($event)">
+            </app-stripe-payment>
+            
+            <p class="text-center text-xs text-gray-400 mt-4 flex items-center justify-center">
+               <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+               Powered by Stripe
+            </p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

@@ -37,10 +37,13 @@ export class LoginComponent implements OnInit {
 
   private redirectByRole(): void {
     this.authService.waitForProfile().pipe(take(1)).subscribe(profile => {
-      if (profile.role === 'DOCTOR') {
+      const role = (profile.role || '').toString().toUpperCase();
+      if (role === 'DOCTOR') {
         this.router.navigate(['/portal/doctor/dashboard']);
-      } else if (profile.role === 'PATIENT') {
+      } else if (role === 'PATIENT') {
         this.router.navigate(['/portal/patient/dashboard']);
+      } else if (role === 'ADMIN') {
+        this.router.navigate(['/portal/admin/dashboard']);
       } else {
         this.router.navigate(['/']);
       }
@@ -64,11 +67,13 @@ export class LoginComponent implements OnInit {
     this.authService.login(email, password).subscribe({
       next: (authResponse) => {
         if (authResponse && authResponse.user) {
-          const role = authResponse.user.role;
+          const role = (authResponse.user.role || '').toString().toUpperCase();
           if (role === 'DOCTOR') {
             this.router.navigate(['/portal/doctor/dashboard']);
           } else if (role === 'PATIENT') {
             this.router.navigate(['/portal/patient/dashboard']);
+          } else if (role === 'ADMIN') {
+            this.router.navigate(['/portal/admin/dashboard']);
           } else {
             this.router.navigate(['/']);
           }

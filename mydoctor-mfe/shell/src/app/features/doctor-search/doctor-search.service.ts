@@ -15,6 +15,7 @@ export interface Doctor {
   rating?: number;
   available?: boolean;
   profilePicture?: string;
+  consultationFee?: number;
 }
 
 export interface Page<T> {
@@ -39,6 +40,18 @@ export class DoctorSearchService {
   ) {
     this.apiUrl = `${this.configService.apiUrl}/api/v1/doctors`;
     this.aiUrl = `${this.configService.apiUrl}/api/v1/ai`;
+  }
+
+  getDoctorById(id: number): Observable<Doctor> {
+    return this.http.get<Doctor>(`${this.apiUrl}/${id}`);
+  }
+
+  getDoctorReviews(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${id}/reviews`);
+  }
+
+  addDoctorReview(id: number, review: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/reviews`, review);
   }
 
   recommendDoctor(symptoms: string): Observable<{ specialization: string }> {

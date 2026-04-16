@@ -28,7 +28,7 @@ import { MedicalRecord } from '../../../core/models/medical-record.model';
         <form [formGroup]="prescriptionForm" (ngSubmit)="onSubmit()" class="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
           
           <!-- AI Transcription Section -->
-          <div *ngIf="prescriptionForm.get('aiNotes')?.value" class="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-2">
+          <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-2">
              <div class="flex items-center space-x-2 text-amber-700 font-black uppercase text-xs tracking-widest">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path><path d="M12 2.252A8.001 8.001 0 0117.748 8H12V2.252z"></path></svg>
                 <span>AI Transcription Summary</span>
@@ -52,6 +52,14 @@ import { MedicalRecord } from '../../../core/models/medical-record.model';
             <textarea formControlName="prescription" rows="3"
                       class="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all font-medium text-gray-900 placeholder-gray-400 resize-none"
                       placeholder="1. Paracetamol 500mg..."></textarea>
+          </div>
+
+          <!-- Additional Notes -->
+          <div class="space-y-2">
+            <label class="block text-sm font-black text-gray-700 uppercase tracking-wide">Administrative Notes</label>
+            <textarea formControlName="notes" rows="2"
+                      class="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all font-medium text-gray-900 placeholder-gray-400 resize-none"
+                      placeholder="Follow-up in 1 week..."></textarea>
           </div>
 
           <!-- Attachments (Radiography/Scans) -->
@@ -135,8 +143,22 @@ export class PrescriptionModalComponent implements OnInit {
           });
           this.attachments = record.attachments || [];
         }
+        
+        // Fallback: Check localStorage for AI Summary from the meeting room
+        const cachedSummary = localStorage.getItem(`ai_summary_${appointmentId}`);
+        if (cachedSummary && !this.prescriptionForm.get('aiNotes')?.value) {
+            this.prescriptionForm.patchValue({ aiNotes: cachedSummary });
+            // Optional: Clear it after picking it up to keep storage clean
+            // localStorage.removeItem(`ai_summary_${appointmentId}`);
+        }
       },
-      error: (err) => console.log('No existing record found', err)
+      error: (err) => {
+        console.log('No existing record found, checking cache...', err);
+        const cachedSummary = localStorage.getItem(`ai_summary_${appointmentId}`);
+        if (cachedSummary) {
+            this.prescriptionForm.patchValue({ aiNotes: cachedSummary });
+        }
+      }
     });
   }
 
@@ -164,15 +186,15 @@ export class PrescriptionModalComponent implements OnInit {
 
     const record: MedicalRecord = {
       id: this.existingRecord?.id,
-      appointmentId: this.appointment.id?.toString(),
-      patientId: this.appointment.patientId,
-      doctorId: this.appointment.doctorId,
+      appointmentId: this.appointment?.id?.toString() || '',
+      patientId: Number(this.appointment?.patientId) || 0,
+      doctorId: Number(this.appointment?.doctorId) || 0,
       recordDate: this.existingRecord?.recordDate || new Date().toISOString(),
       diagnosis: formValue.diagnosis,
       prescription: formValue.prescription,
-      notes: formValue.notes,
-      aiNotes: formValue.aiNotes,
-      attachments: this.attachments
+      notes: formValue.notes || '',
+      aiNotes: formValue.aiNotes || '',
+      attachments: this.attachments || []
     };
 
     this.authService.getUserInfo(this.appointment.patientId).subscribe({

@@ -38,6 +38,12 @@
               <span class="text-green-600">{{ userName }}</span>
             </span>
             
+            <a routerLink="/profile" data-cy="profile-link"
+               class="flex items-center text-gray-600 hover:text-green-500 font-medium transition-colors">
+               <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+               Profile
+            </a>
+
             <!-- Role-specific Links -->
             <a *ngIf="userRole === 'PATIENT'" 
                routerLink="/portal/patient/dashboard" 

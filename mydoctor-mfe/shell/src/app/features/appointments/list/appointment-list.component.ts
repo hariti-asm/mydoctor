@@ -132,4 +132,18 @@ export class AppointmentListComponent implements OnInit {
       }
     });
   }
+
+  cancelAppointment(id: number): void {
+    if (confirm('Are you sure you want to cancel this appointment?')) {
+      this.appointmentService.cancelAppointment(id).subscribe({
+        next: () => {
+          this.loadAppointments(this.currentUser);
+        },
+        error: (err) => {
+          console.error('Failed to cancel appointment', err);
+          alert('Failed to cancel appointment. Please try again.');
+        }
+      });
+    }
+  }
 }

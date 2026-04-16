@@ -1,21 +1,25 @@
-import { Component } from '@angular/core';
+import { Component, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { DoctorSearchService, Doctor, Page } from './doctor-search.service';
 import { TranslateModule } from '@ngx-translate/core';
-import { GoogleMapsModule } from '@angular/google-maps';
+
+// Leaflet is loaded via script tag in index.html, but we can declare it as global
+declare var L: any;
 
 @Component({
   selector: 'app-doctor-search',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, TranslateModule, GoogleMapsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, TranslateModule],
   templateUrl: './doctor-search.component.html',
   styleUrls: ['./doctor-search.component.css']
 })
-export class DoctorSearchComponent {
+export class DoctorSearchComponent implements AfterViewInit {
   searchForm: FormGroup;
   doctors: Doctor[] = [];
+  map: any;
+  markers: any[] = [];
   
   // Pagination state
   currentPage = 0;
@@ -38,7 +42,81 @@ export class DoctorSearchComponent {
     this.onSearch(); 
   }
 
-  // ... existing search methods ...
+  ngAfterViewInit() {
+    // Small delay to ensure DOM is fully ready, especially in micro-frontends
+    setTimeout(() => {
+      this.initMap();
+    }, 100);
+  }
+
+  initMap() {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) {
+      console.warn('Map container not found, retrying in 500ms...');
+      setTimeout(() => this.initMap(), 500);
+      return;
+    }
+
+    try {
+      // Fix for Leaflet default icons in Angular/Bundled environments
+      if (L.Icon.Default) {
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+          iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+          shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        });
+      }
+
+      // Default center (e.g. London)
+      const defaultLat = 51.505;
+      const defaultLng = -0.09;
+
+      if (this.map) {
+        this.map.remove();
+      }
+
+      this.map = L.map('map').setView([defaultLat, defaultLng], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(this.map);
+
+      // Force a resize fix as Leaflet sometimes loads with 0 height
+      setTimeout(() => {
+        this.map.invalidateSize();
+        if (this.doctors.length > 0) {
+          this.updateMarkers();
+        }
+      }, 500);
+    } catch (e) {
+      console.error('Error initializing Leaflet map:', e);
+    }
+  }
+
+  updateMarkers() {
+    if (!this.map) return;
+
+    // Clear existing markers
+    this.markers.forEach(m => this.map.removeLayer(m));
+    this.markers = [];
+
+    const group: [number, number][] = [];
+    this.doctors.forEach(doctor => {
+      if (doctor.latitude && doctor.longitude) {
+        const marker = L.marker([doctor.latitude, doctor.longitude])
+          .addTo(this.map)
+          .bindPopup(`<b>Dr. ${doctor.firstName} ${doctor.lastName}</b><br>${doctor.speciality}`);
+        this.markers.push(marker);
+        group.push([doctor.latitude, doctor.longitude]);
+      }
+    });
+
+    // Zoom and center map to show all doctors if any exist
+    if (group.length > 0) {
+      this.map.fitBounds(group);
+    }
+  }
 
   openAiModal() {
     this.showAiModal = true;
@@ -86,6 +164,7 @@ export class DoctorSearchComponent {
         this.doctors = page.content;
         this.totalPages = page.totalPages;
         this.totalElements = page.totalElements;
+        this.updateMarkers();
       },
       error: (err) => console.error(err)
     });
@@ -105,19 +184,19 @@ export class DoctorSearchComponent {
     }
   }
 
-  getMapOptions(doctor: any): google.maps.MapOptions {
-    return {
-      center: { lat: doctor.latitude || 0, lng: doctor.longitude || 0 },
-      zoom: 15,
-      mapTypeId: 'roadmap',
-      zoomControl: false,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: false
-    };
+  getOSMLink(doctor: any): string {
+    if (doctor.latitude && doctor.longitude) {
+      return `https://www.openstreetmap.org/?mlat=${doctor.latitude}&mlon=${doctor.longitude}#map=16/${doctor.latitude}/${doctor.longitude}`;
+    }
+    const query = encodeURIComponent(`${doctor.address}, ${doctor.city}`);
+    return `https://www.openstreetmap.org/search?query=${query}`;
   }
 
-  getMarkerPosition(doctor: any): google.maps.LatLngLiteral {
-    return { lat: doctor.latitude || 0, lng: doctor.longitude || 0 };
+  getDiceBearAvatar(doctor: any): string {
+    if (doctor.profilePicture) {
+      return doctor.profilePicture;
+    }
+    const seed = `${doctor.firstName || ''} ${doctor.lastName || ''}`.trim();
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(seed)}&backgroundColor=059669&textColor=ffffff`;
   }
 }
