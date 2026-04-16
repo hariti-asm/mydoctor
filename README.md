@@ -122,4 +122,20 @@ Our "Full Journey" test suite ensures 100% reliability of the core platform valu
 3. **Frontend**: `cd mydoctor-mfe && npx nx serve shell`
 
 ---
+
+## 🗂️ Project Structure
+
+A snapshot of the organized, production-grade monorepo layout — spanning microservices, micro-frontends, infrastructure-as-code, and an automated E2E test suite.
+
+![myDoctor Project Structure](docs/project-structure.png)
+
+| Directory | Purpose |
+| :--- | :--- |
+| `backend/` | 7 independent Spring Boot microservices |
+| `mydoctor-mfe/` | Angular Nx workspace with 4 MFE portals |
+| `mydoctor-e2e/` | Cypress 13 stabilized end-to-end test suite |
+| `k8s/` | Kubernetes manifests for full EKS deployment |
+| `terraform/` | AWS VPC + EKS infrastructure as code |
+
+---
 *Developed with excellence for the future of Telemedicine.*
