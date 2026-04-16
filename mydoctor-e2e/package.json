@@ -1,0 +1,14 @@
+{
+  "name": "mydoctor-e2e",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "cypress run",
+    "cypress:open": "cypress open",
+    "test:admin": "cypress run --spec cypress/e2e/admin-workflow.cy.js",
+    "test:patient": "cypress run --spec cypress/e2e/patient-workflow.cy.js",
+    "test:full": "cypress run --spec cypress/e2e/full-journey-workflow.cy.js"
+  },
+  "devDependencies": {
+    "cypress": "^13.6.0"
+  }
+}
