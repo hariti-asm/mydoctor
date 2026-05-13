@@ -13,7 +13,7 @@ A high-performance, full-stack telemedicine platform engineered with **Angular M
 
 Witness the complete platform workflow in action. This automated test suite verifies the full journey from patient registration to medical record issuance and history review.
 
-![MyDoctor Full Journey Walkthrough](mydoctor-e2e/cypress/videos/full-journey-workflow.cy.js.mp4)
+![MyDoctor Full Journey Walkthrough](https://www.linkedin.com/posts/asmaa-hariti_springboot-angular-microservices-ugcPost-7450820535715815424-R-bG?utm_source=share&utm_medium=member_desktop&rcm=ACoAAEFO2pEBc48x1fUBYWHDBzWj9AhdkIDEIsE)
 
 > [!TIP]
 > This video was generated using our robust Cypress E2E suite. It captures the **AI-driven symptom checker**, **secure Stripe payments**, and **real-time consultation** workflows flawlessly.
