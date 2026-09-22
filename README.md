@@ -69,6 +69,27 @@ flowchart LR
     F --> G[Patient History Available]
 ```
 
+### Event-Driven Notifications (Kafka)
+```mermaid
+flowchart LR
+    subgraph AppService [Appointment Service]
+        A[Booking Logic] -->|1. Creates| B(Notification Request)
+        B -->|2. Serializes| C[KafkaTemplate]
+    end
+
+    subgraph Broker [Apache Kafka Cluster]
+        D[(Topic: appointment-notifications)]
+    end
+
+    subgraph UsrService [User Service]
+        E[KafkaListener] -->|4. Deserializes| F(Notification Request)
+        F -->|5. Triggers| G[Email Service]
+    end
+
+    C -->|3. Publishes| D
+    D -.->|Subscribes| E
+```
+
 ### System Class Relationships
 ```mermaid
 classDiagram
